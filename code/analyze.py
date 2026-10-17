@@ -436,6 +436,98 @@ def study_B(suite='B_n', local='B_local', tag=''):
     return res
 
 
+def _val(P, key, spec):
+    """spec: method name, or ('diff', a, b) paired difference, or ('max', [keys...], method)."""
+    if isinstance(spec, str):
+        if key not in P or spec not in P[key]:
+            return None
+        r, lo, hi = rate(P[key][spec])
+        return r, lo, hi
+    if spec[0] == 'diff':
+        if key not in P:
+            return None
+        a = (P[key][spec[1]] <= ALPHA).astype(float)
+        b = (P[key][spec[2]] <= ALPHA).astype(float)
+        dd = a - b
+        h = 1.96 * dd.std(ddof=1) / np.sqrt(len(dd))
+        return dd.mean(), dd.mean() - h, dd.mean() + h
+
+
+def _maxnull(P, keys, meth):
+    vals = [rate(P[k][meth]) for k in keys if k in P]
+    return max(vals, key=lambda v: v[0]) if vals else None
+
+
+def confirm_tables():
+    def fmtv(v, signed=False):
+        if v is None:
+            return '--'
+        f = (lambda x: f'{x:+.3f}') if signed else (lambda x: f'{x:.3f}')
+        return f'{f(v[0])} [{f(v[1])}, {f(v[2])}]'
+
+    specs_A = []
+    nullkeys = [(sc, 'Null', '40') for sc in A_SCEN]
+    for m in ['CUR', 'WU-R', 'SW-R', 'G-WU', 'WU-F', 'SW-F', 'SW-PB']:
+        specs_A.append((f'max null rate over 5 scenarios, {m}', 'A_main', ('maxnull', nullkeys, m), False))
+    specs_A += [
+        ('WU-R $-$ CUR, Aligned, Mean$+$', 'A_main', (('Aligned', 'Mean+', '40'), ('diff', 'WU-R', 'CUR')), True),
+        ('WU-R $-$ CUR, Aligned, Scale', 'A_main', (('Aligned', 'Scale', '40'), ('diff', 'WU-R', 'CUR')), True),
+        ('WU-R $-$ CUR, Shifted, Mean$-$', 'A_main', (('Shifted', 'Mean-', '40'), ('diff', 'WU-R', 'CUR')), True),
+        ('WU-R $-$ CUR, Shifted, Mean$+$', 'A_main', (('Shifted', 'Mean+', '40'), ('diff', 'WU-R', 'CUR')), True),
+        ('WU-R $-$ CUR, Opposite, Scale', 'A_main', (('Opposite', 'Scale', '40'), ('diff', 'WU-R', 'CUR')), True),
+        ('G-WU $-$ CUR, Shifted, Mean$+$', 'A_main', (('Shifted', 'Mean+', '40'), ('diff', 'G-WU', 'CUR')), True),
+        ('WU-F null rate, AlignedNull, $m=160$', 'A_n', (('AlignedNull', 'n', '160'), 'WU-F'), False),
+        ('SW-R power, BlindSpot, $m=160$', 'A_n', (('BlindSpot', 'n', '160'), 'SW-R'), False),
+        ('WU-R power, BlindSpot, $m=160$', 'A_n', (('BlindSpot', 'n', '160'), 'WU-R'), False),
+        ('CUR power, BlindSpot, $m=160$', 'A_n', (('BlindSpot', 'n', '160'), 'CUR'), False),
+    ]
+    specs_B = [
+        ('max null rate, R (all schedules), 4 null settings', 'B_n', ('maxnullR',), False),
+        ('F-$\\theta^{(0.25)}$ null, NullShift, $n=800$', 'B_n', (('NullShift', 'n', '800'), 'F-a25'), False),
+        ('F-$\\theta^{(0.25)}$ null, NullIdent, $n=800$', 'B_n', (('NullIdent', 'n', '800'), 'F-a25'), False),
+        ('PB always, NullIdent, $n=800$', 'B_n', (('NullIdent', 'n', '800'), 'PB-ALL'), False),
+        ('PB fixed, NullShift, $n=400$', 'B_n', (('NullShift', 'n', '400'), 'PB-fix'), False),
+        ('R fixed power, BlindSpot, $n=800$', 'B_n', (('BlindSpot', 'n', '800'), 'R-fix'), False),
+        ('R $a=.25$ power, BlindSpot, $n=800$', 'B_n', (('BlindSpot', 'n', '800'), 'R-a25'), False),
+        ('R $a=.25$ $-$ CUR, PowIdent, $n=200$', 'B_n', (('PowIdent', 'n', '200'), ('diff', 'R-a25', 'CUR')), True),
+        ('R $a=.75$ $-$ CUR, PowIdent, $n=200$', 'B_n', (('PowIdent', 'n', '200'), ('diff', 'R-a75', 'CUR')), True),
+        ('R $a=.25$ power, LocBlind, $n=800$', 'B_local', (('LocBlind', 'n', '800'), 'R-a25'), False),
+        ('CUR power, LocBlind, $n=800$', 'B_local', (('LocBlind', 'n', '800'), 'CUR'), False),
+        ('G $a=.25$ power, LocBlind, $n=800$', 'B_local', (('LocBlind', 'n', '800'), 'G-a25'), False),
+        ('F fixed null, BoundNull, $n=200$', 'B_local', (('BoundNull', 'n', '200'), 'F-fix'), False),
+    ]
+    B_nullkeys = [(s, 'n', str(n)) for s in ['NullIdent', 'NullShift', 'NullFar', 'Multi2Null'] for n in NS]
+    cache = {}
+
+    def get(suite):
+        if suite not in cache:
+            d = load(suite)
+            cache[suite] = d[0] if d else None
+        return cache[suite]
+
+    for specs, out, gdir in [(specs_A, 'tab_confirm_A.tex', GA), (specs_B, 'tab_confirm_B.tex', GB)]:
+        rows = []
+        for label, suite, spec, signed in specs:
+            vals = []
+            for sfx in ['', '_conf']:
+                P = get(suite + sfx)
+                if P is None:
+                    vals.append(None)
+                    continue
+                if spec[0] == 'maxnull':
+                    vals.append(_maxnull(P, spec[1], spec[2]))
+                elif spec[0] == 'maxnullR':
+                    cand = [_maxnull(P, B_nullkeys, f'R-{nm}') for nm in ['fix', 'a25', 'a45', 'a75']]
+                    vals.append(max(cand, key=lambda v: v[0]))
+                else:
+                    vals.append(_val(P, spec[0], spec[1]))
+            rows.append(f'{label} & {fmtv(vals[0], signed)} & {fmtv(vals[1], signed)}\\\\')
+        s = [r'\begin{tabular}{@{}lll@{}}', r'\toprule',
+             r'Quantity & exploratory (seed 20261018) & confirmation (seed 20261019)\\', r'\midrule'] + rows + \
+            [r'\bottomrule', r'\end{tabular}']
+        write(os.path.join(gdir, out), '\n'.join(s))
+
+
 def main():
     summary = {}
     repro_table()
@@ -450,6 +542,7 @@ def main():
         fig_A_n('A_n_conf', '_conf')
     if os.path.exists(os.path.join(RES, 'B_n_conf.npz')) or os.path.exists(os.path.join(RES, 'B_local_conf.npz')):
         summary['B_conf'] = study_B('B_n_conf', 'B_local_conf', '_conf')
+    confirm_tables()
     with io.open(os.path.join(RES, 'summary.json'), 'w', encoding='utf-8') as f:
         json.dump(summary, f, indent=1, default=float)
     print('done')

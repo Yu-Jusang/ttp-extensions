@@ -20,7 +20,7 @@
 
 %======================================================================
 \begin{titlepage}
-\vspace*{2mm}
+\vspace*{20mm}
 {\small\textsc{Working paper \quad$\cdot$\quad Study A of two follow-up studies}}\par
 \vspace{6mm}
 \rule{\textwidth}{0.6pt}\par\vspace{5mm}
@@ -30,16 +30,19 @@
 \begin{tabularx}{\textwidth}{@{}lX@{}}
 \textbf{Builds on} & L.~Yang, X.~Liu and R.~J.~Evans (2026), \emph{Data Fusion with Distributional Equivalence Test-then-pool}, arXiv:2603.11867v2. \\[1mm]
 \textbf{Question} & How can several historical control sources be used to test $H_0:Q_c=Q_t$ when the sources may differ from the current control and from each other? \\[1mm]
-\textbf{Content} & Review of the original guarantees; two borrowing rules; exact selection-aware calibration; theorems with proofs; Monte Carlo study ($\approx$\,85{,}000 synthetic data sets) with an independent-seed confirmation. \\[1mm]
+\textbf{Content} & Review of the original guarantees; two borrowing rules; exact selection-aware calibration; theorems with proofs; Monte Carlo study ($108{,}000$ synthetic data sets, including an independent-seed confirmation of $42{,}000$). \\[1mm]
 \textbf{Status} & Research draft, 18 October 2026. Proofs are the author's own and have not been independently refereed. Prepared with AI assistance (Claude); an earlier AI draft (GPT, 17 October 2026) is credited where its ideas are reused. \\[1mm]
 \textbf{Companion} & Study B: \emph{Shrinking equivalence radii and vanishing borrowing}. \\[1mm]
 \textbf{Materials} & Code, seeds, raw results: \url{https://github.com/Yu-Jusang/ttp-extensions}
 \end{tabularx}
-\vspace{7mm}
-\begin{abstract}\small
+\vfill
+\end{titlepage}
+
+\begin{abstract}
 \noindent Borrowing historical controls can raise the power of a randomized comparison with a small concurrent control arm, but heterogeneous sources can bias the comparison. We extend the distributional equivalence test-then-pool (TTP) procedure of \citet{yang2026} from one to $J$ historical sources, keeping the final null hypothesis $H_0:Q_c=Q_t$ unchanged. Two borrowing rules are studied: (i) nonnegative weights chosen by minimising an \emph{unbiased} estimate of the kernel-mean-embedding risk, built from a Gram matrix of estimated source shifts; and (ii) sourcewise MMD equivalence fusion followed by sample-size pooling of accepted sources. Both rules are data-dependent, so the final test is calibrated by \emph{full reselection}: the entire selection is recomputed in every permutation of the current labels. We prove finite-sample validity of this calibration under explicit symmetry conditions on auxiliary bootstrap randomness, show that freezing the observed selection can only be bounded by $|\mathcal D|\alpha$ in general, and prove that ordinary permutation of historical data is invalid under heterogeneity. For the risk-weighted rule we prove a deterministic bound $D^2(\hat Q_f,Q_c^m)\le 2\hat s\,\hat v_c/m$ in every permutation, which yields an explicit Type-II error bound and consistency against all alternatives with $\sqrt n\,D(Q_c,Q_t)\to\infty$, uniformly over the historical distributions. Sourcewise fusion with a fixed radius admits a fixed alternative with power tending to zero. In simulations, full reselection held the nominal level in every setting, freezing the selection did not, risk weighting gained power when sources were aligned and lost power when source shifts mimicked the treatment effect, and a minP safeguard limited those losses. We do not claim finite-sample power dominance over current-only testing.
 \end{abstract}
-\end{titlepage}
+\vspace{4mm}
+
 
 \tableofcontents
 \clearpage
@@ -511,6 +514,8 @@ For any vector $T$ and $u\in[0,1]$, \cref{lem:rank}'s counting step gives $\#\{b
 \input{app_repro.tex}
 
 %======================================================================
+\FloatBarrier
+\clearpage
 \input{references.tex}
 
 \end{document}

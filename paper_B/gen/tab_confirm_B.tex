@@ -1,0 +1,19 @@
+\begin{tabular}{@{}lll@{}}
+\toprule
+Quantity & exploratory (seed 20261018) & confirmation (seed 20261019)\\
+\midrule
+max null rate, R (all schedules), 4 null settings & 0.060 [0.050, 0.071] & 0.064 [0.050, 0.081]\\
+F-$\theta^{(0.25)}$ null, NullShift, $n=800$ & 0.064 [0.054, 0.075] & 0.072 [0.058, 0.090]\\
+F-$\theta^{(0.25)}$ null, NullIdent, $n=800$ & 0.047 [0.039, 0.057] & 0.039 [0.029, 0.053]\\
+PB always, NullIdent, $n=800$ & 0.025 [0.019, 0.033] & 0.021 [0.014, 0.032]\\
+PB fixed, NullShift, $n=400$ & 0.088 [0.077, 0.102] & 0.092 [0.076, 0.112]\\
+R fixed power, BlindSpot, $n=800$ & 0.000 [0.000, 0.004] & 0.000 [0.000, 0.008]\\
+R $a=.25$ power, BlindSpot, $n=800$ & 0.999 [0.994, 1.000] & 0.998 [0.989, 1.000]\\
+R $a=.25$ $-$ CUR, PowIdent, $n=200$ & +0.097 [+0.077, +0.117] & +0.106 [+0.076, +0.136]\\
+R $a=.75$ $-$ CUR, PowIdent, $n=200$ & -0.001 [-0.003, +0.001] & +0.000 [+0.000, +0.000]\\
+R $a=.25$ power, LocBlind, $n=800$ & 0.071 [0.057, 0.089] & 0.069 [0.055, 0.086]\\
+CUR power, LocBlind, $n=800$ & 0.779 [0.752, 0.804] & 0.754 [0.726, 0.780]\\
+G $a=.25$ power, LocBlind, $n=800$ & 0.715 [0.686, 0.742] & 0.690 [0.661, 0.718]\\
+F fixed null, BoundNull, $n=200$ & 0.073 [0.063, 0.086] & 0.070 [0.060, 0.082]\\
+\bottomrule
+\end{tabular}

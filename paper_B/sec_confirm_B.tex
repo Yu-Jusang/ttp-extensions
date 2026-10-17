@@ -1,0 +1,9 @@
+The complete B\_n ($1000$/$500$ replicates) and B\_local ($2000$/$1000$) designs were rerun with base seed $20261019$ (\cref{tab:confirmB}).
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Key quantities in the exploratory and the independent confirmation runs, with Wilson 95\% intervals (rates) or paired normal 95\% intervals (differences). The first row is the largest null rejection rate of any reselected radius test over $4$ settings, $5$ sample sizes and $4$ schedules.}\label{tab:confirmB}
+\input{gen/tab_confirm_B.tex}
+\end{table}
+
+All conclusions are reproduced. The reselected tests' largest null rate over $80$ cells was $0.064$, with $1000$ replicates and an interval reaching down to $0.050$; this maximum over many cells is consistent with exact level. The frozen shrinking-radius test was again inflated with a slightly shifted source at $n=800$ ($0.072$) but not with an identical source ($0.039$). The partial bootstrap was again conservative when only identical sources were merged ($0.021$) and anti-conservative with a shifted source ($0.092$). The fixed-radius blind spot ($0.000$), its removal by $\theta^{(0.25)}$ ($0.998$), the gain from retaining an identical source ($+0.106$) and the local blind spot ($0.069$ against $0.754$ for current-only testing) were all reproduced.

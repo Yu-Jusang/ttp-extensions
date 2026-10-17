@@ -19,7 +19,7 @@
 \begin{document}
 
 \begin{titlepage}
-\vspace*{2mm}
+\vspace*{20mm}
 {\small\textsc{Working paper \quad$\cdot$\quad Study B of two follow-up studies}}\par
 \vspace{6mm}
 \rule{\textwidth}{0.6pt}\par\vspace{5mm}
@@ -29,16 +29,19 @@
 \begin{tabularx}{\textwidth}{@{}lX@{}}
 \textbf{Builds on} & L.~Yang, X.~Liu and R.~J.~Evans (2026), \emph{Data Fusion with Distributional Equivalence Test-then-pool}, arXiv:2603.11867v2, Remark~3.19. \\[1mm]
 \textbf{Question} & Can a radius $\theta_n\to0$ or a borrowing mass $b_n\to0$, fixed before seeing data, remove the power blind spot of fixed-radius equivalence test-then-pool, and at what cost? \\[1mm]
-\textbf{Content} & Selection asymptotics with shrinking radii; exact and asymptotic calibration; a rate-sharp local blind spot; vanishing borrowing; partial-bootstrap degeneracy; Monte Carlo study with sample-size-dependent populations and an independent-seed confirmation. \\[1mm]
+\textbf{Content} & Selection asymptotics with shrinking radii; exact and asymptotic calibration; a rate-sharp local blind spot; vanishing borrowing; partial-bootstrap degeneracy; Monte Carlo study ($144{,}500$ synthetic data sets, $n$ up to $800$) with sample-size-dependent populations and an independent-seed confirmation of $52{,}500$ data sets. \\[1mm]
 \textbf{Status} & Research draft, 18 October 2026. Proofs are the author's own and have not been independently refereed. Prepared with AI assistance (Claude); ideas from an earlier AI draft (GPT, 17 October 2026) are credited where reused. \\[1mm]
 \textbf{Companion} & Study A: \emph{Multi-source distributional test-then-pool}. \\[1mm]
 \textbf{Materials} & Code, seeds, raw results: \url{https://github.com/Yu-Jusang/ttp-extensions}
 \end{tabularx}
-\vspace{7mm}
-\begin{abstract}\small
+\vfill
+\end{titlepage}
+
+\begin{abstract}
 \noindent With a fixed equivalence radius $\theta$, the distributional test-then-pool (TTP) procedure of \citet{yang2026} keeps borrowing a historical control that differs from the current control by up to $\theta$, and it is not consistent against alternatives in which the treatment effect points in the direction of the historical shift (their Remark~3.19). We analyse prespecified schedules $\theta_n=\theta_0(n/n_0)^{-a}$ and borrowing masses $b_n\to0$. For the fusion stage we prove that an identical source is retained with probability tending to one when $n\theta_n^2\to\infty$, and is eventually discarded when $\sqrt n\,\theta_n\to0$; a fixed shifted source is discarded whenever $\theta_n\to0$; we also give explicit selection-error bounds. Calibrated by full reselection, the final test has finite-sample level for every schedule, and it is consistent against every fixed alternative as soon as $\theta_n\to0$. Freezing the selection, as in the original procedure, gives pointwise asymptotic validity and consistency by coupling with an oracle, but not uniformly. We prove that the price of shrinking radii is a local blind spot of exact order $\theta_n$: there are alternatives with $D(Q_c,Q_t)=c\,\theta_n\gg n^{-1/2}$ for which the power tends to zero although the current-only test has power tending to one. No radius schedule both retains identical sources and is uniformly consistent at the $\sqrt n$ scale. A minP safeguard, or the soft risk weights of the companion study, avoids this trade-off. Vanishing borrowing mass restores consistency but gives no first-order local power gain from identical sources. The original partial bootstrap degenerates at $Q_h=Q_c$; a Gaussian-limit calculation and simulations suggest that it is conservative there, which we state as a conjecture. Simulations with $n$ up to $800$ confirm these patterns and show their finite-sample sizes.
 \end{abstract}
-\end{titlepage}
+\vspace{4mm}
+
 
 \tableofcontents
 \clearpage
@@ -247,7 +250,7 @@ rejection prob.\ (MC s.e.\ $\approx0.004$) & $0.033$ & $0.036$ & $0.039$ & $0.02
 
 \subsection{Choosing the schedule before the study}\label{sec:planning}
 
-The theory restricts the exponent to $0<a<1/2$ if identical sources are to be retained. Within that range, smaller $a$ retains sources longer but leaves the blind spot \eqref{thm:localblind} wider, of order $n^{-a}$. A transparent prespecification is the following.
+The theory restricts the exponent to $0<a<1/2$ if identical sources are to be retained. Within that range, smaller $a$ retains sources longer but leaves the local blind spot of \cref{thm:localblind} wider, of order $n^{-a}$. A transparent prespecification is the following.
 \begin{enumerate}[leftmargin=1.4em,itemsep=1pt]
 \item Choose a planning sample size $n_0$ and a tolerance $\theta_0$ at $n_0$, for instance the largest discrepancy that subject-matter experts would ignore. Alternatively, choose $\theta_0$ so that an identical source is accepted with a target probability $\pi_0$ at $n_0$ under a planning model, using simulation only (no outcome data).
 \item Choose $a\in(0,1/2)$; we use $a=1/4$ as a compromise. At $n=16n_0$ it halves the radius ($16^{-1/4}=1/2$), while $\sqrt n\theta_n$ still grows like $n^{1/4}$.
@@ -341,5 +344,7 @@ With $\Delta_b=\hxi_{c,A_b}-\hxi_{t,A_b}$ we have $S^{\rm cur}_b=\norm{\Delta_b}
 \section{Implementation and reproducibility}\label{app:repro}
 \input{app_repro.tex}
 
+\FloatBarrier
+\clearpage
 \input{references.tex}
 \end{document}

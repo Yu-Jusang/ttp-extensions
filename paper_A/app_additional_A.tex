@@ -1,6 +1,6 @@
 \subsection{Bandwidth convention in the reproduction}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering\small
 \caption{Original Table~2 rows with fixed bandwidth $s$, read as $k(x,y)=e^{-(x-y)^2/s^2}$ (i.e.\ $\sigma=s/\sqrt2$ in our parameterisation); $1000$ data sets per cell, frozen selection as in the original. ``original'' rows copy \citet[Table 2]{yang2026}: merge rates averaged over the three columns; PB with PP in the next column.}\label{tab:repro_bw}
 \IfFileExists{gen/tab_repro_bw.tex}{\input{gen/tab_repro_bw.tex}}{\emph{(not yet available)}}
@@ -8,7 +8,7 @@
 
 \subsection{Fusion levels and selection in permuted rows}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering\scriptsize
 \caption{Sourcewise fusion with Bonferroni levels (SW-R, $\alpha_{f,j}=0.05/3$) and without (SWu-R, $\alpha_{f,j}=0.05$), both with full reselection; acceptance rates of each source in the observed row and averaged over permuted rows (A\_main).}\label{tab:accrows}
 \input{gen/tab_A_accrows.tex}
@@ -18,8 +18,16 @@ Under every null, acceptance rates in observed and permuted rows agree to two de
 
 \IfFileExists{gen/tab_A_n.tex}{%
 \subsection{Sample-size experiment: full table}
-\begin{table}[h]
+\begin{table}[H]
 \centering\scriptsize
 \caption{A\_n: rejection rates by $m$ ($n=\ell_j=2m$, $J=3$, $\theta=0.5$); null rows $2000$ data sets, alternatives $1000$.}\label{tab:An}
 \input{gen/tab_A_n.tex}
 \end{table}}{}
+
+\subsection{Confirmation run: null rejection rates}
+\begin{table}[H]
+\centering\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\caption{Null rejection rates in the confirmation run (A\_main, base seed $20261019$, $2000$ data sets per row).}\label{tab:nullconf}
+\input{gen/tab_A_null_conf.tex}
+\end{table}
