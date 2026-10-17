@@ -1,5 +1,5 @@
 {
- "status": "진행 중 — 탐색 실험 전부 완료, 별도 seed 확인 실험 실행 중 (02:48)",
+ "status": "완료 — 논문 A·B 최종 초안, 재현 패키지 공개 (2026-10-18 03:40)",
  "flow": [
   {
    "title": "원 논문 검토",
@@ -18,38 +18,42 @@
   },
   {
    "title": "탐색 시뮬레이션",
-   "desc": "A_main · A_n · B_n · B_local · 재현",
-   "state": "run"
+   "desc": "repro · A_main · A_n · B_n · B_local (137,000)",
+   "state": "done"
   },
   {
    "title": "이론 정리·증명",
-   "desc": "level, Type-II bound, 선택 안정화, local power",
-   "state": "run"
+   "desc": "level, Type-II bound, 선택 안정화, local blind spot",
+   "state": "done"
   },
   {
    "title": "확인 시뮬레이션",
-   "desc": "별도 seed로 주요 결과 재확인",
-   "state": "todo"
+   "desc": "seed 20261019로 전체 설계 재실행 (94,500 + 9,000)",
+   "state": "done"
   },
   {
    "title": "논문 A·B",
-   "desc": "LaTeX 작성 → PDF 렌더링 점검",
-   "state": "todo"
+   "desc": "LaTeX → PDF, 모든 쪽 렌더링 점검",
+   "state": "done"
   },
   {
    "title": "재현 패키지",
-   "desc": "코드·seed·원시 결과·zip",
-   "state": "todo"
+   "desc": "코드·seed·원시 결과·zip (GitHub release)",
+   "state": "done"
   }
  ],
  "files": [
   {
    "href": "papers/paper_A.pdf",
-   "label": "논문 A (초안 PDF, 30분마다 갱신): Multi-source Distributional Test-then-pool"
+   "label": "논문 A (PDF, 29쪽): Multi-source Distributional Test-then-pool"
   },
   {
    "href": "papers/paper_B.pdf",
-   "label": "논문 B (초안 PDF, 30분마다 갱신): Shrinking Equivalence Radii and Vanishing Borrowing"
+   "label": "논문 B (PDF, 24쪽): Shrinking Equivalence Radii and Vanishing Borrowing"
+  },
+  {
+   "href": "https://github.com/Yu-Jusang/ttp-extensions/releases/tag/v1.0-draft",
+   "label": "재현 패키지 zip (코드·원시 결과·LaTeX·PDF, 22.6 MB)"
   },
   {
    "href": "https://github.com/Yu-Jusang/ttp-extensions/tree/main/code",
@@ -151,6 +155,20 @@
    "tag": "로컬 PC (15 workers, 29.3분)",
    "title": "연구 B 주 실험 완료: $n=50\\ldots800$ (55,000 데이터셋)",
    "body": "<p><b>BlindSpot 검정력</b> ($Q_h=N(0.8,1)$, $Q_t=\\tfrac13N(0,1)+\\tfrac23N(0.8,1)$):</p><table><tr><th>n</th><th>100</th><th>200</th><th>400</th><th>800</th></tr><tr><td>current-only</td><td>.738</td><td>.966</td><td>1.000</td><td>1.000</td></tr><tr><td>반경 고정 (R fix)</td><td>.546</td><td>.484</td><td>.167</td><td><b>.000</b></td></tr><tr><td>$\\theta_n\\propto n^{-1/4}$</td><td>.630</td><td>.821</td><td>.945</td><td>.999</td></tr><tr><td>$\\theta_n\\propto n^{-3/4}$</td><td>.739</td><td>.966</td><td>1.000</td><td>1.000</td></tr><tr><td>질량 $b_n\\propto n^{-1/4}$</td><td>.031</td><td>.063</td><td>.203</td><td>.647</td></tr></table><p><b>동일 source</b> (PowIdent): 반경 고정·$a=1/4$는 current-only 대비 +7~12%p, $a=3/4$는 source를 버려 current-only와 같음, $a=0.45$는 source를 80–94% 유지하지만 이득 없음.</p><p><b>Type-I</b>: reselection 검정은 20개 귀무 셀 모두 0.035–0.060. 선택 고정(F, $a=1/4$)은 동일 source면 $n\\ge200$에서 정상화되지만, 약간 이동한 source(NullShift, $D=0.131$)에서는 $n=800$까지 0.064–0.074 — 반경이 0.131 아래로 내려가는 $n\\approx10^4$ 전까지 선택이 안정화되지 않기 때문. 원 논문 partial bootstrap은 이동한 source를 합치면 0.085–0.110, 동일 source만 합치면 0.024–0.036 (보수적, conjecture와 일치).</p><p>원 논문 bandwidth로 재현 재확인(repro_bw): merge 비율은 가까워지지만 검정력 수준은 여전히 원 논문보다 낮음 — 원인 미확인, 논문에 그대로 기재.</p>"
+  },
+  {
+   "date": "2026. 10. 18 (일)",
+   "time": "03:32",
+   "tag": "로컬 PC (15 workers, 약 46분)",
+   "title": "독립 seed(20261019) 확인 실험 완료",
+   "body": "<p>A_main·A_n·B_n·B_local 전체 설계를 새 seed로 재실행 (94,500 데이터셋). 모든 결론이 재현됨:</p><table><tr><th>지표</th><th>탐색</th><th>확인</th></tr><tr><td>가중치 고정(WU-F) 최대 귀무 기각률</td><td>.126</td><td>.123</td></tr><tr><td>원 논문식 partial bootstrap 최대 귀무 기각률</td><td>.139</td><td>.161</td></tr><tr><td>WU-R − CUR (Aligned, Scale)</td><td>+.110</td><td>+.119</td></tr><tr><td>WU-R − CUR (Shifted, Mean+)</td><td>−.139</td><td>−.124</td></tr><tr><td>사각지대 SW-R 검정력 ($m=160$)</td><td>.009</td><td>.008</td></tr><tr><td>Local blind spot, $a=1/4$ ($n=800$)</td><td>.071</td><td>.069</td></tr><tr><td>동일 source 유지 이득 ($a=1/4$, $n=200$)</td><td>+.097</td><td>+.106</td></tr></table>"
+  },
+  {
+   "date": "2026. 10. 18 (일)",
+   "time": "03:40",
+   "tag": "로컬 PC",
+   "title": "최종 PDF·재현 패키지 공개",
+   "body": "<p>표(float)가 참고문헌 뒤로 밀리던 문제를 수정하고 두 PDF의 모든 쪽을 렌더링해 확인 (overfull box 0개, 깨진 참조 0개). 논문 A 29쪽, 논문 B 24쪽.</p><p>GitHub release <code>v1.0-draft</code>에 재현 패키지 zip(코드, seed, 원시 결과 npz, 분석 스크립트, LaTeX, PDF)을 첨부.</p>"
   }
  ]
 }
