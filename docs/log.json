@@ -1,5 +1,5 @@
 {
- "status": "진행 중 — 연구 A·B 탐색 시뮬레이션 실행 중, 이론 정리 중 (01:40)",
+ "status": "진행 중 — 연구 A·B 탐색 시뮬레이션 실행 중, 이론 정리 중 (01:45)",
  "flow": [
   {
    "title": "원 논문 검토",
@@ -77,14 +77,14 @@
    "time": "01:25",
    "tag": "로컬 PC",
    "title": "원 논문 Table 2 재현 (단일 source, 1000회)",
-   "body": "<p>$Q_t=N(0,1)$, $Q_c=N(\\mu_c,1)$, $Q_h=N(\\mu_c+0.2,1)$, $m=50,n=100,\\ell=100$, $\theta=0.4$, $\u0007lpha_f=\u0007lpha=0.05$, $B=B_f=999$, median heuristic.</p><table><tr><th>$\\mu_c-\\mu_t$</th><th>merge</th><th>current-only</th><th>partial bootstrap (원 논문)</th><th>partial permutation, 선택 고정</th><th>partial permutation, full reselection</th></tr><tr><td>−0.4</td><td>0.772</td><td>0.490</td><td>0.402</td><td>0.539</td><td>0.459</td></tr><tr><td>0 (귀무)</td><td>0.776</td><td>0.048</td><td><b>0.078</b></td><td><b>0.067</b></td><td>0.046</td></tr><tr><td>+0.4</td><td>0.789</td><td>0.523</td><td>0.731</td><td>0.653</td><td>0.598</td></tr></table><p>관찰: (1) 선택을 고정한 두 절차(원 논문 방식)는 귀무 기각률이 0.05를 넘음 (원 논문 Table 2도 0.064–0.074). (2) 매 permutation마다 fusion을 다시 하면 0.046으로 맞음. (3) merge 비율은 원 논문(0.285)보다 높음 — median heuristic의 정의(커널을 $e^{-d^2/2\\sigma^2}$로 쓰는지 $e^{-d^2/\\sigma^2}$로 쓰는지)가 원문에서 확정되지 않아서이며, 고정 bandwidth로 확인하면 $e^{-d^2/\\sigma^2}$ 해석에서 원 논문의 merge 비율(0.32/0.67/0.82)과 비슷해짐. 이 부분은 별도 재현 실험으로 보고 예정.</p>"
+   "body": "<p>$Q_t=N(0,1)$, $Q_c=N(\\mu_c,1)$, $Q_h=N(\\mu_c+0.2,1)$, $m=50,n=100,\\ell=100$, $\\theta=0.4$, $\\alpha_f=\\alpha=0.05$, $B=B_f=999$, median heuristic.</p><table><tr><th>$\\mu_c-\\mu_t$</th><th>merge</th><th>current-only</th><th>partial bootstrap (원 논문)</th><th>partial permutation, 선택 고정</th><th>partial permutation, full reselection</th></tr><tr><td>−0.4</td><td>0.772</td><td>0.490</td><td>0.402</td><td>0.539</td><td>0.459</td></tr><tr><td>0 (귀무)</td><td>0.776</td><td>0.048</td><td><b>0.078</b></td><td><b>0.067</b></td><td>0.046</td></tr><tr><td>+0.4</td><td>0.789</td><td>0.523</td><td>0.731</td><td>0.653</td><td>0.598</td></tr></table><p>관찰: (1) 선택을 고정한 두 절차(원 논문 방식)는 귀무 기각률이 0.05를 넘음 (원 논문 Table 2도 0.064–0.074). (2) 매 permutation마다 fusion을 다시 하면 0.046으로 맞음. (3) merge 비율이 원 논문(0.285)보다 높음 — median heuristic과 커널 bandwidth의 정확한 정의가 원문에서 확정되지 않기 때문. 고정 bandwidth로 확인하면 커널을 $e^{-d^2/\\sigma^2}$로 해석할 때 원 논문의 merge 비율(0.32/0.67/0.82)과 비슷해짐. 별도 재현 실험으로 보고 예정.</p>"
   },
   {
    "date": "2026. 10. 18 (일)",
    "time": "01:35",
    "tag": "로컬 PC",
    "title": "코드 수정: bootstrap 공통 난수의 부착 순서",
-   "body": "<p>Full reselection의 정확한 level 증명은 각 permutation 행의 통계량이 \"control 값들의 집합\"의 대칭함수일 것을 요구함. 공통 multinomial 가중치를 원래 인덱스 순서로 붙이면 이 조건이 미세하게 깨지므로, <b>값 순서로 정렬한 control에 붙이도록</b> 수정하고 연구 A 시뮬레이션을 다시 시작함 (연구 B의 reselection은 라벨 불변인 pooled-current bootstrap을 쓰므로 영향 없음).</p>"
+   "body": "<p>Full reselection의 정확한 level 증명은 각 permutation 행의 통계량이 \"control 값들의 집합\"의 대칭함수일 것을 요구함. 공통 multinomial 가중치를 원래 인덱스 순서로 붙이면 이 조건이 미세하게 깨지므로, <b>값 순서로 정렬한 control에 붙이도록</b> 수정하고 연구 A 시뮬레이션을 다시 시작함. 연구 B의 reselection은 라벨 불변인 pooled-current bootstrap을 쓰므로 영향 없음.</p>"
   }
  ]
 }
