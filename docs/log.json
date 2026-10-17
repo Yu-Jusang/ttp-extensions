@@ -1,5 +1,5 @@
 {
- "status": "진행 중 — 연구 A 실험 완료, 연구 B 실험 실행 중 (02:01)",
+ "status": "진행 중 — 연구 B local 실험 완료, B 주 실험 실행 중 (02:14)",
  "flow": [
   {
    "title": "원 논문 검토",
@@ -120,6 +120,13 @@
    "tag": "로컬 PC (15 workers, 22.8분)",
    "title": "연구 A 표본 크기 실험 완료: $m=20,40,80,160$ (24,000 데이터셋)",
    "body": "<table><tr><th>BlindSpot 검정력</th><th>m=20</th><th>40</th><th>80</th><th>160</th></tr><tr><td>current-only</td><td>.361</td><td>.626</td><td>.890</td><td>.994</td></tr><tr><td>모두 합치기 (ALL)</td><td>.060</td><td>.047</td><td>.022</td><td>.007</td></tr><tr><td>source별 fusion, reselection (SW-R)</td><td>.375</td><td>.547</td><td>.189</td><td><b>.009</b></td></tr><tr><td>원 논문식 (SW-PB)</td><td>.371</td><td>.488</td><td>.147</td><td><b>.001</b></td></tr><tr><td>위험 가중치 (WU-R)</td><td>.296</td><td>.526</td><td>.828</td><td>.978</td></tr><tr><td>안전장치 (G-SW)</td><td>.366</td><td>.596</td><td>.860</td><td>.992</td></tr></table><p>→ 고정 반경 사각지대(정리 3.15)가 표본이 커질수록 오히려 심해지는 것을 확인. 가중 방법과 안전장치는 회복.</p><p>선택 고정의 Type-I: source별 선택 고정(SW-F)은 $m$이 커지며 0.079 → 0.057로 줄어듦 (선택이 안정화). 하지만 <b>가중치 고정(WU-F)은 모든 $m$에서 ≈0.11</b> — soft weight는 절대 안정화되지 않기 때문. Current-only의 정확성은 별도 20,000회로 재확인 (0.0506).</p>"
+  },
+  {
+   "date": "2026. 10. 18 (일)",
+   "time": "02:13",
+   "tag": "로컬 PC (15 workers, 14.0분)",
+   "title": "연구 B local 실험 완료: 표본 크기에 따라 모집단이 변하는 경우 (25,000 데이터셋)",
+   "body": "<p><b>LocBlind</b> (정리 3.6의 수열: $D(Q_c,Q_{h,n})=\\theta_n/2$, $\\theta_n=0.5(n/50)^{-1/4}$, $Q_{t,n}=\\tfrac13Q_c+\\tfrac23Q_{h,n}$):</p><table><tr><th>n</th><th>50</th><th>100</th><th>200</th><th>400</th><th>800</th></tr><tr><td>current-only</td><td>.255</td><td>.343</td><td>.431</td><td>.629</td><td>.779</td></tr><tr><td>R, 반경 고정</td><td>.258</td><td>.180</td><td>.037</td><td>.016</td><td>.013</td></tr><tr><td>R, $a=1/4$</td><td>.258</td><td>.311</td><td>.254</td><td>.176</td><td><b>.071</b></td></tr><tr><td>minP 안전장치 ($a=1/4$)</td><td>.255</td><td>.325</td><td>.380</td><td>.544</td><td>.715</td></tr><tr><td>source 수용률 ($a=1/4$)</td><td>.20</td><td>.36</td><td>.55</td><td>.77</td><td>.93</td></tr></table><p>→ 반경을 줄여도 $\\theta_n$ 크기의 local 대립에서는 검정력 → 0 (current-only는 → 1). 이론의 trade-off가 실험으로 확인됨.</p><p><b>LocPow</b> (동일 source, $\\sqrt n$-local 평균 이동): 동일 source를 계속 쓰는 R(고정, $a=1/4$)은 current-only보다 약 +7%p (0.30 vs 0.23), 빨리 줄이는 $a=3/4$는 current-only와 같아짐. <b>LocAlign</b> ($\\sqrt n$-local historical shift가 treatment와 같은 방향): borrowing이 손해 (0.16 vs 0.23), 원 논문 partial bootstrap은 0.05까지 떨어짐.</p><p><b>BoundNull</b> (source가 정확히 반경 경계): 고정 반경 frozen(F fix)은 수용률이 0.36으로 중간값인 $n=200$에서 0.073로 부풂 — 선택 확률이 0도 1도 아닐 때 frozen calibration이 깨진다는 예측과 일치.</p>"
   }
  ]
 }

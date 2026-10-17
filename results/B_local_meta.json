@@ -1,0 +1,13 @@
+{
+ "suite": "B_local",
+ "reps_null": 2000,
+ "reps_alt": 1000,
+ "seed": 20261018,
+ "n_tasks": 25000,
+ "elapsed_sec": 839.1937053203583,
+ "python": "3.12.2",
+ "numpy": "2.5.4",
+ "platform": "Windows-11-10.0.26300-SP0",
+ "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+ "workers": 15
+}
