@@ -72,6 +72,7 @@ class Problem:
         self.J = len(xhs)
         self.ell = np.array([len(h) for h in xhs], dtype=int)
         Z = np.concatenate([xc, xt])
+        self.Z = Z
         allx = np.concatenate([Z] + list(xhs))
         K = rbf(allx, allx, sigma)
         N = self.N
@@ -222,12 +223,15 @@ def boot_hist_dists(prob, Bf, rng):
 
 
 def boot_ctrl_dists_rows(prob, P, mask, rows, Bf, rng):
-    """D_W(Q_c^m) of each listed row, common multinomial weights across rows: len(rows) x Bf."""
+    """D_W(Q_c^m) of each listed row, common multinomial weights across rows: len(rows) x Bf.
+    The weights are attached to the control values sorted by value, so the bootstrap output
+    is a symmetric function of the control multiset (needed for exact row exchangeability)."""
     m = int(mask[0].sum())
     E = rng.multinomial(m, np.full(m, 1.0 / m), size=Bf) - 1.0
     out = np.zeros((len(rows), Bf))
     for k, l in enumerate(rows):
         idx = P[mask[l]]
+        idx = idx[np.argsort(prob.Z[idx], kind='stable')]
         Kc = prob.KZZ[np.ix_(idx, idx)]
         out[k] = np.sqrt(np.maximum(0, np.einsum('bi,bi->b', E @ Kc, E))) / m
     return out
