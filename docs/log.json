@@ -1,5 +1,5 @@
 {
- "status": "진행 중 — 연구 A·B 탐색 시뮬레이션 실행 중, 이론 정리 중 (01:23)",
+ "status": "진행 중 — 탐색 시뮬레이션 실행 중(약 3시간 예상), 연구 B 이론 작성 중 (01:28)",
  "flow": [
   {
    "title": "원 논문 검토",
@@ -85,6 +85,13 @@
    "tag": "로컬 PC",
    "title": "코드 수정: bootstrap 공통 난수의 부착 순서",
    "body": "<p>Full reselection의 정확한 level 증명은 각 permutation 행의 통계량이 \"control 값들의 집합\"의 대칭함수일 것을 요구함. 공통 multinomial 가중치를 원래 인덱스 순서로 붙이면 이 조건이 미세하게 깨지므로, <b>값 순서로 정렬한 control에 붙이도록</b> 수정하고 연구 A 시뮬레이션을 다시 시작함. 연구 B의 reselection은 라벨 불변인 pooled-current bootstrap을 쓰므로 영향 없음.</p>"
+  },
+  {
+   "date": "2026. 10. 18 (일)",
+   "time": "01:27",
+   "tag": "로컬 PC",
+   "title": "연구 A: 정리·증명 초안 완료 (LaTeX)",
+   "body": "<p>원 논문 결과와 새 결과를 구분해 정리. 핵심:</p><ul><li><b>Full reselection의 finite-sample level</b>: control 값 집합의 대칭함수인 임의의 borrowing 규칙에 대해 $\\Pr(p\\le\\alpha)\\le\\lfloor\\alpha L\\rfloor/L$ (historical 분포·fusion bootstrap 정확도·$B$와 무관).</li><li><b>선택 고정의 한계</b>: 일반적으로 $\\min(1,|\\mathcal D|\\alpha)$까지만 보장 (union bound). Historical까지 함께 permute하면 이질성 아래 size → 1.</li><li><b>불편 위험 목적함수</b> $\\hat R_U(w)=w^\\top\\hat Gw+(1-2s)\\hat v_c/m$: 고정 $w$에서 embedding MSE의 불편추정량. $J=1$이면 historical embedding 쪽으로의 positive-part James–Stein형 shrinkage.</li><li><b>결정적 변위 bound</b>: 0을 포함한 후보에서 고른 $\\hat w$는 모든 permutation 행에서 $D^2(\\hat Q_f,Q_c^m)\\le 2\\hat s\\hat v_c/m\\le 2\\kappa^2/(m-1)$.</li><li><b>Type-II bound</b>: $\\Pr(\\text{비기각})\\le 4(v_{m,n}+BM_{m,n}/k_\\alpha)/(d-2\\delta)^2$ → 가중 방법은 historical 분포와 무관하게 $\\sqrt n d_n\\to\\infty$인 모든 대립에 균일하게 일치.</li><li><b>고정 반경 사각지대</b>: $Q_t=\\gamma Q_c+(1-\\gamma)Q_h$이면 source별 fusion은 full reselection을 해도 검정력 → 0.</li><li><b>minP 안전장치</b>: $p_G\\le 2\\min(p_{cur},p_{bor})$, current-only의 $\\alpha/2$ 검정력을 보장.</li></ul><p>시뮬레이션: 노트북 CPU(i7-1360P, 열 제한)로 예상보다 느려 탐색 단계 전체가 약 3시간 소요 예상.</p>"
   }
  ]
 }

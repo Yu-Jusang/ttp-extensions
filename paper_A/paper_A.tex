@@ -1,0 +1,505 @@
+\documentclass[11pt,a4paper]{article}
+\input{preamble.tex}
+\hypersetup{
+  pdftitle={Multi-source Distributional Test-then-pool: Risk-weighted Borrowing, Sourcewise Equivalence Fusion and Selection-aware Permutation Inference},
+  pdfauthor={Working paper (prepared with AI assistance)},
+  pdfsubject={Statistical methodology: historical controls, kernel two-sample testing},
+  pdfkeywords={test-then-pool, historical controls, maximum mean discrepancy, equivalence testing, permutation test, selective inference, data fusion}
+}
+\newcommand{\shorttitle}{Multi-source distributional test-then-pool}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textsc{\shorttitle}}
+\fancyhead[R]{\small\nouppercase{\leftmark}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\begin{document}
+
+%======================================================================
+\begin{titlepage}
+\vspace*{18mm}
+{\small\textsc{Working paper \quad$\cdot$\quad Study A of two follow-up studies}}\par
+\vspace{6mm}
+\rule{\textwidth}{0.6pt}\par\vspace{5mm}
+{\LARGE\bfseries Multi-source Distributional Test-then-pool:\\[2mm] Risk-weighted Borrowing, Sourcewise Equivalence Fusion\\[2mm] and Selection-aware Permutation Inference\par}
+\vspace{5mm}\rule{\textwidth}{0.6pt}\par
+\vspace{10mm}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\textbf{Builds on} & L.~Yang, X.~Liu and R.~J.~Evans (2026), \emph{Data Fusion with Distributional Equivalence Test-then-pool}, arXiv:2603.11867v2. \\[1mm]
+\textbf{Question} & How can several historical control sources be used to test $H_0:Q_c=Q_t$ when the sources may differ from the current control and from each other? \\[1mm]
+\textbf{Content} & Review of the original guarantees; two borrowing rules; exact selection-aware calibration; theorems with proofs; Monte Carlo study ($\approx$\,85{,}000 synthetic data sets) with an independent-seed confirmation. \\[1mm]
+\textbf{Status} & Research draft, 18 October 2026. Proofs are the author's own and have not been independently refereed. Prepared with AI assistance (Claude); an earlier AI draft (GPT, 17 October 2026) is credited where its ideas are reused. \\[1mm]
+\textbf{Companion} & Study B: \emph{Shrinking equivalence radii and vanishing borrowing}. \\[1mm]
+\textbf{Materials} & Code, seeds, raw results: \url{https://github.com/Yu-Jusang/ttp-extensions}
+\end{tabularx}
+\vfill
+\begin{abstract}
+\noindent Borrowing historical controls can raise the power of a randomized comparison with a small concurrent control arm, but heterogeneous sources can bias the comparison. We extend the distributional equivalence test-then-pool (TTP) procedure of \citet{yang2026} from one to $J$ historical sources, keeping the final null hypothesis $H_0:Q_c=Q_t$ unchanged. Two borrowing rules are studied: (i) nonnegative weights chosen by minimising an \emph{unbiased} estimate of the kernel-mean-embedding risk, built from a Gram matrix of estimated source shifts; and (ii) sourcewise MMD equivalence fusion followed by sample-size pooling of accepted sources. Both rules are data-dependent, so the final test is calibrated by \emph{full reselection}: the entire selection is recomputed in every permutation of the current labels. We prove finite-sample validity of this calibration under explicit symmetry conditions on auxiliary bootstrap randomness, show that freezing the observed selection can only be bounded by $|\mathcal D|\alpha$ in general, and prove that ordinary permutation of historical data is invalid under heterogeneity. For the risk-weighted rule we prove a deterministic bound $D^2(\hat Q_f,Q_c^m)\le 2\hat s\,\hat v_c/m$ in every permutation, which yields an explicit Type-II error bound and consistency against all alternatives with $\sqrt n\,D(Q_c,Q_t)\to\infty$, uniformly over the historical distributions. Sourcewise fusion with a fixed radius admits a fixed alternative with power tending to zero. In simulations, full reselection held the nominal level in every setting, freezing the selection did not, risk weighting gained power when sources were aligned and lost power when source shifts mimicked the treatment effect, and a minP safeguard limited those losses. We do not claim finite-sample power dominance over current-only testing.
+\end{abstract}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+%======================================================================
+\section{Introduction}\label{sec:intro}
+
+A randomized comparison of a treatment distribution $Q_t$ with a concurrent control distribution $Q_c$ often has far fewer control than treated units. Control outcomes from earlier studies are frequently available and can be borrowed to increase power \citep{viele2014,schmidli2014}. If the historical populations differ from the current one, borrowing biases the comparison, inflates Type-I error, or masks a genuine effect \citep{viele2014}. Test-then-pool (TTP) procedures decide whether to borrow through a preliminary test. \citet{li2020} replaced the classical equality pretest with an equivalence pretest, and \citet{yang2026} lifted equivalence TTP to whole distributions using the maximum mean discrepancy (MMD), together with a partial bootstrap and a partial permutation that calibrate the causal test when the borrowed control is close to, but not identical with, the current control.
+
+\citet{yang2026} study one historical source and mention multi-source weighting only as a future direction (their Section~6). In practice several historical trials, registries or sites are available, and they differ in size, in how far they are from the current population and in \emph{direction}: two sources can be shifted in opposite directions and partly cancel, or in the same direction as the treatment effect and partly mask it. This paper studies how to borrow from $J$ sources while testing exactly the same null hypothesis,
+\[
+H_0: Q_c=Q_t \quad\text{versus}\quad H_1: Q_c\neq Q_t,
+\]
+and never the surrogate hypothesis $Q_f=Q_t$ for a fused control $Q_f$.
+
+\paragraph{Contributions.} We separate results taken from earlier work from new ones.
+\begin{enumerate}[leftmargin=1.4em,itemsep=2pt]
+\item \emph{Review.} We restate the original guarantees with their theorem numbers and assumptions (\cref{sec:orig}) and identify two steps whose arguments we could not verify as written: the conditional partial-permutation validity (original Theorem~A.4) and the boundary behaviour of the fusion test. We do not claim that the original conclusions are false.
+\item \emph{Calibration after selection} (\cref{sec:calib}). Full-reselection partial permutation has finite-sample level $\lfloor\alpha L\rfloor/L$ for \emph{any} symmetric borrowing rule, any historical distributions and any number $B$ of random permutations (\cref{thm:level}). We make explicit a symmetry condition on shared bootstrap randomness that is easy to violate in code. Freezing the observed selection is controlled in general only by a union bound $|\mathcal D|\alpha$ (\cref{prop:frozen}), and permuting historical observations together with current ones has asymptotic size one under heterogeneity (\cref{prop:fullperm}). Full reselection was proposed in the earlier AI draft; the symmetry condition, the union bound and the invalidity result are new here.
+\item \emph{Risk-weighted borrowing} (\cref{sec:weights}). We give the fixed-weight risk decomposition of the fused kernel mean embedding, an unbiased estimate $\hat R_U(w)=w^\top\hat G w+(1-2s)\hat v_c/m$ of that risk, its connection to Stein-type kernel mean shrinkage \citep{muandet2016}, and a deterministic displacement bound for the data-selected weight (\cref{thm:disp}). The earlier draft proved a similar bound for a conservative objective that double-counts sampling variance; the unbiased objective, its bound and the risk-safety bound (\cref{prop:safety}) are new.
+\item \emph{Sourcewise fusion} (\cref{sec:sourcewise}). We specify hypotheses, statistics and bootstrap computations for $J$ separate equivalence tests, separate the familywise error of falsely accepting a source from the final Type-I error (\cref{prop:fwer}), and prove that a fixed radius can leave a fixed alternative with power tending to zero even under full reselection (\cref{thm:blind}).
+\item \emph{Power} (\cref{sec:power}). An explicit Type-II bound for any rule with deterministic displacement control (\cref{thm:typeII}; it sharpens a bound in the earlier draft) gives uniform $\sqrt n$-rate consistency of the risk-weighted test over all historical distributions (\cref{cor:uniform}). A minP safeguard inherits the power of the current-only test at level $\alpha/2$ (\cref{prop:guard}).
+\item \emph{Experiments} (\cref{sec:experiments,sec:results}). A reproduction of the original Table~2, a $5\times5$ factorial design with three sources, a sample-size study including a blind spot, and an independent-seed confirmation, with Monte Carlo intervals and computation times.
+\end{enumerate}
+
+Consistency of a test and power gain over current-only testing at a fixed sample size are different properties. Our theory addresses the former and gives risk bounds; we do not prove that borrowing improves power, and the experiments show settings in which it does not.
+
+%======================================================================
+\section{Background}\label{sec:background}
+
+\subsection{Setting and notation}\label{sec:setting}
+
+We observe mutually independent samples
+\[
+x^c_1,\dots,x^c_m\overset{iid}{\sim}Q_c,\qquad x^t_1,\dots,x^t_n\overset{iid}{\sim}Q_t,\qquad x^{h_j}_1,\dots,x^{h_j}_{\ell_j}\overset{iid}{\sim}Q_{h_j}\ (j=1,\dots,J),
+\]
+with empirical measures $Q_c^m,Q_t^n,Q_{h_j}^{\ell_j}$. The current pool is $Z=(Z_1,\dots,Z_N)$, $N=m+n$, whose first $m$ coordinates are the controls.
+
+\begin{assumption}[Kernel]\label{ass:kernel}
+$k$ is a bounded, measurable, characteristic kernel on the outcome space with separable RKHS $\Hk$ and $\kappa^2:=\sup_x k(x,x)<\infty$.
+\end{assumption}
+
+The Gaussian (RBF) kernel $k(x,y)=\exp\{-\norm{x-y}^2/(2\sigma^2)\}$ satisfies \cref{ass:kernel} with $\kappa=1$. Boundedness is stronger than the moment condition used by \citet{yang2026} (their Assumption~2.2); we use it to obtain non-asymptotic bounds.
+
+The kernel mean embedding of $R$ is $\xi_R=\E_{X\sim R}k(\cdot,X)\in\Hk$ and we write $\xi_c,\xi_t,\xi_j$ for $\xi_{Q_c},\xi_{Q_t},\xi_{Q_{h_j}}$, and $\hxi_c,\hxi_t,\hxi_j$ for the embeddings of the empirical measures.
+
+\paragraph{Convention for $D$.} Throughout, $D(P,Q):=\norm{\xi_P-\xi_Q}_{\Hk}$ denotes the MMD itself, \emph{not} its square; $D^2$ is its square. Plug-in values $D(P^a,Q^b)=\norm{\hxi_P-\hxi_Q}$ are the (biased, nonnegative) V-statistic estimators used by \citet{yang2026}. All final test statistics are squared MMDs; the fusion test uses $D$.
+
+\paragraph{Fused control.} For a weight vector $w\in\Wset:=\{w\in[0,1]^J:\ s(w):=\sum_j w_j\le1\}$ define the fused control and its embedding
+\begin{equation}\label{eq:fused}
+\hat Q_f(w)=(1-s)Q_c^m+\sum_{j=1}^J w_jQ_{h_j}^{\ell_j},\qquad \hxi_f(w)=(1-s)\hxi_c+\sum_j w_j\hxi_j .
+\end{equation}
+Literal pooling of a set $S$ of sources corresponds to $w_j=\ell_j/(m+\ell_S)$ for $j\in S$, $\ell_S=\sum_{j\in S}\ell_j$; it is the multi-source version of $Q_f^{m+\ell}$ in \citet{yang2026}, and its embedding is exactly the weighted sum in \eqref{eq:fused} (their Lemma~A.1). Shift directions and their empirical Gram matrix are
+\begin{equation}\label{eq:gram}
+b_j=\xi_j-\xi_c,\qquad \hat G_{ij}=\ip{\hxi_i-\hxi_c}{\hxi_j-\hxi_c},\qquad \norm{\hxi_f(w)-\hxi_c}^2=w^\top\hat Gw = D^2(\hat Q_f(w),Q_c^m).
+\end{equation}
+For a distribution $R$ let $v_R:=\E\norm{k(\cdot,X)-\xi_R}^2=\E k(X,X)-\norm{\xi_R}^2\le\kappa^2$ (the RKHS trace variance), and let $\hat v_c=\frac{m}{m-1}\{m^{-1}\sum_ik(x^c_i,x^c_i)-\norm{\hxi_c}^2\}$ be its unbiased estimate.
+
+\subsection{The original equivalence TTP}\label{sec:orig}
+
+We restate the results of \citet{yang2026} that we build on. Statements are paraphrased with the original numbering; $\gamma=m/(m+\ell)$, $\eta=n/(m+n)$, $c_1=m/n$, $c_2=\ell/n$.
+
+\paragraph{Fusion test (original Section 3.1, Theorem 3.1).} The fusion hypotheses are $H_0^f:D(Q_c,Q_h)\ge\theta$ against $H_1^f:D(Q_c,Q_h)<\theta$ for a prespecified radius $\theta>0$. The statistic is $\Delta^f_{m,\ell}=\theta-D(Q_c^m,Q_h^\ell)$, and $H_0^f$ is rejected (the source is \emph{merged}) when $\Delta^f_{m,\ell}$ exceeds the $(1-\alpha_f)$ quantile of $S_{m,\ell}=D(Q_c^m,Q_c)+D(Q_h^\ell,Q_h)$, which upper bounds $\Delta^f$ under $H_0^f$ by the triangle inequality. The quantile is approximated by Efron's bootstrap, $D_W(Q_c^m)=\norm{m^{-1}\sum_i(W_i-1)k(\cdot,x^c_i)}$ with $W\sim\mathrm{Multinomial}(m;1/m,\dots,1/m)$ and similarly for $Q_h^\ell$ \citep[][Section 4.2, Lemma 7]{liugandy2026}. (The original text writes $\mathrm{Multinomial}(n;\dots)$ in both places; we use the actual sizes $m$ and $\ell$.) Theorem 3.1 states, under second-moment conditions, that the rejection probability tends to $0$, to some $a\in(0,\alpha_f]$, or to $1$ when $D(Q_h,Q_c)$ is $>$, $=$ or $<\theta$; it is adapted from \citet[Theorem 8]{liugandy2026}.
+
+\paragraph{Partial bootstrap (original Algorithm 2, Proposition 3.4, Theorems 3.5--3.6).} With the merged control $Q_f^{m+\ell}=\gamma Q_c^m+(1-\gamma)Q_h^\ell$, the statistic is $\Delta=\sqrt n\{D^2(Q_f^{m+\ell},Q_t^n)-D^2(Q_f^{m+\ell},Q_c^m)\}$. Each bootstrap replicate draws $m$ and $n$ points from $Q_c^m$ (pseudo-control and pseudo-treatment) and $\ell$ points from $Q_h^\ell$. Under $H_0$, fixed ratios (Assumption 3.2) and $Q_c\neq Q_h$, $\Delta$ and its bootstrap version are asymptotically $N(0,4(1+1/c_1)\sigma_c^2)$ (Proposition~3.4), giving asymptotic level (Theorem~3.5). When $Q_h=Q_c$ the limit is degenerate and validity is not established (discussion after Theorem 3.5). Consistency holds if and only if $Q_c=Q_h$ or $2(1-\gamma)D(Q_h,Q_c)\cos\beta<D(Q_c,Q_t)$, where $\cos\beta=\ip{\xi_h-\xi_c}{\xi_t-\xi_c}/(\norm{\xi_h-\xi_c}\norm{\xi_t-\xi_c})$ (Theorem~3.6).
+
+\paragraph{Partial permutation (original Section 3.2.3, Theorems 3.8--3.9).} Only the current labels are permuted; the historical sample stays in the fused control. With the statistic $T_{n,m,\ell}=D^2(Q_f^{m+\ell},Q_t^n)$ and a Monte Carlo quantile including the observed value, the test has finite-sample level for a \emph{fixed} merging decision and every $Q_h$ (Theorem~3.8). Consistency holds if and only if $Q_c=Q_h$ or $2D(Q_h,Q_c)\cos\beta<\{(1-\eta)^{-1}+\eta\}D(Q_t,Q_c)$ (Theorem~3.9).
+
+\paragraph{Overall procedure (Theorems 3.12, 3.16; Corollaries 3.17, 3.18; Remark 3.19).} If the fusion test satisfies the trichotomy of Theorem~3.1 and the causal test has conditional asymptotic level given each fusion outcome (conditions (11)--(12)), the overall TTP has asymptotic level $\alpha$ (Theorem~3.12); consistency of the branches yields consistency of the whole (Theorem~3.16). Corollary~3.17 asserts level with partial bootstrap when $Q_h\neq Q_c$ and with partial permutation for all $Q_h$; Corollary~3.18 inherits the geometric consistency conditions above. Remark~3.19 notes the resulting lack of consistency against all alternatives and suggests a radius $\theta_n=o(1)$, leaving its analysis open. That direction is pursued in the companion Study~B.
+
+\subsection{Points that require care}\label{sec:care}
+
+\begin{enumerate}[leftmargin=1.4em,itemsep=2pt]
+\item \emph{Conditioning on the fusion event.} Conditions (11)--(12) are verified in Appendix~A.2 of \citet{yang2026}. For partial permutation (their Theorem~A.4), the argument uses that the merge event $A_n=\{\phi_f(Q_c^m,Q_h^\ell)=1\}$ is measurable with respect to $(Z,Q_h^\ell)$ and then applies the conditional permutation bound $\P(T\ge\hat c\mid Z,Q_h^\ell)\le\alpha$. A permutation test is valid conditionally on the \emph{unordered} pool (the orbit of $Z$), not on the labelled vector, and $A_n$ depends on which values carry control labels. We could not complete the argument as written. Conditioning on the fully labelled $Z$ makes the observed statistic deterministic; conditioning on the orbit makes $A_n$ non-measurable. For partial bootstrap (their Proposition~A.2), tightness of $A_n-A$ is transferred to the conditional law, but the Gaussian limit of the leading term is not. Our experiments (\cref{sec:results}), and the null rejection rates $0.064$--$0.074$ in their Table~2, are consistent with a finite-sample excess from conditioning.
+\item \emph{Boundary of the fusion test.} The boundary rejection limit $a\in(0,\alpha_f]$ requires non-degeneracy; for instance, two point masses at distance exactly $\theta$ give a statistic equal to $0$ and a critical value of $0$, so strict rejection has probability $0$. None of our results needs $a>0$.
+\item \emph{Degeneracy of the partial bootstrap at $Q_h=Q_c$.} This matters whenever only near-identical sources are merged; Study~B analyses it.
+\end{enumerate}
+
+\subsection{Related work}\label{sec:related}
+
+\paragraph{Historical and external controls.} Static and dynamic borrowing are reviewed by \citet{viele2014}. Bayesian approaches discount historical data through power priors \citep{ibrahimchen2000}, commensurate priors \citep{hobbs2011}, robust meta-analytic-predictive priors \citep{schmidli2014}, and multisource exchangeability models that let each of several sources be exchangeable or not \citep{kaizer2018}; the latter is the closest Bayesian analogue of our sourcewise fusion. Frequentist test-based integration includes the equivalence TTP of \citet{li2020}, the elastic integrative analysis of \citet{yang2023elastic}, which pools real-world data only when a test indicates compatibility and tunes the threshold to minimise mean squared error, and conformal selective borrowing \citep{zhu2025}, which selects individual external controls and calibrates by randomization inference with finite-sample exact Type-I error. Our full-reselection calibration follows the same randomization logic at the level of whole sources and distributions.
+
+\paragraph{Kernel embeddings and MMD tests.} The MMD two-sample test is due to \citet{gretton2012}; the empirical embedding attains the minimax rate $n^{-1/2}$ \citep{tolstikhin2017}; permutation MMD tests are minimax rate optimal in many settings \citep{kim2022}; and aggregation over kernels uses the same row-wise calibration as our safeguard \citep{schrab2023}. MMD equivalence testing is due to \citet{liugandy2026}.
+
+\paragraph{Weighted combination and shrinkage.} Combining an unbiased small-sample estimator with a biased larger one is a Stein-type problem; \citet{chen2015} study it for regression, and \citet{muandet2016} show that the empirical kernel mean is inadmissible and propose kernel mean shrinkage estimators. Our risk-weighted rule shrinks the current embedding towards historical embeddings rather than towards a fixed target.
+
+\paragraph{Selection-aware randomization and multiplicity.} Random-permutation tests with the observed allocation included are exact \citep{hemerik2018,phipson2010}. Post-selection inference that ignores selection is invalid in general \citep{leeb2005}. Combining dependent statistics through the joint permutation distribution of their $p$-values is the minP principle of \citet{westfallyoung1993}. Restricting a nuisance supremum to a confidence set \citep{bergerboos1994} is an alternative route that we do not pursue. Equivalence testing theory is reviewed by \citet{romano2005}.
+
+%======================================================================
+\section{Method}\label{sec:method}
+
+\subsection{Borrowing rules and the selection problem}\label{sec:rules}
+
+A \emph{borrowing rule} maps the current control sample, the historical samples $\mathbb H=(Q_{h_1}^{\ell_1},\dots,Q_{h_J}^{\ell_J})$ and auxiliary randomness $U$ to weights $\omega(Q_c^m,\mathbb H,U)\in\Wset$. The borrowed test statistic is
+\begin{equation}\label{eq:Tbor}
+T^{\rm bor}=D^2\big(\hat Q_f(\omega),Q_t^n\big)=\norm{(1-s)\hxi_c+\textstyle\sum_jw_j\hxi_j-\hxi_t}^2 .
+\end{equation}
+Examples are no borrowing ($\omega\equiv0$, giving the current-only statistic $T^{\rm cur}=D^2(Q_c^m,Q_t^n)$), always pooling all sources, the risk weights of \cref{sec:weights}, and sourcewise fusion followed by pooling (\cref{sec:sourcewise}). Except for the fixed rules, $\omega$ depends on the same current control data that enter the final test. This is the selection problem: the final test must account for how the weights were chosen.
+
+\subsection{Calibration after selection}\label{sec:calib}
+
+\paragraph{Full reselection.} Let $A_0=\{1,\dots,m\}$ be the observed control positions and let $A_1,\dots,A_B$ be independent uniformly random $m$-subsets of $\{1,\dots,N\}$, drawn independently of all data; set $L=B+1$. For an allocation $A$, let $Q^m_{c,A}$ and $Q^n_{t,A}$ be the empirical measures of $\{Z_i:i\in A\}$ and $\{Z_i:i\notin A\}$. In row $b$ the \emph{whole} rule is re-applied:
+\begin{equation}\label{eq:rows}
+w_b=\omega(Q_{c,A_b}^m,\mathbb H,U),\qquad S_b=D^2\big((1-s_b)Q_{c,A_b}^m+\textstyle\sum_jw_{b,j}Q_{h_j}^{\ell_j},\ Q_{t,A_b}^n\big),
+\end{equation}
+and the $p$-value is
+\begin{equation}\label{eq:pFR}
+p_{\rm FR}=\frac1L\sum_{b=0}^B\1\{S_b\ge S_0\}.
+\end{equation}
+Historical observations are never relabelled. Ties are counted against rejection, and $p_{\rm FR}\ge1/L$.
+
+\begin{algorithm}[t]
+\caption{Full-reselection partial permutation test}\label{alg:fr}
+\begin{algorithmic}[1]
+\Require current pool $Z$ ($m$ controls first), historical samples $\mathbb H$, borrowing rule $\omega$, auxiliary randomness $U$ (drawn once), $B$, $\alpha$
+\State Draw $A_1,\dots,A_B$ i.i.d.\ uniform $m$-subsets of $\{1,\dots,N\}$; set $A_0=\{1,\dots,m\}$
+\For{$b=0,\dots,B$}
+\State $w_b\gets\omega(Q^m_{c,A_b},\mathbb H,U)$ \Comment{re-run every data-dependent step}
+\State $S_b\gets D^2\big((1-s_b)Q^m_{c,A_b}+\sum_jw_{b,j}Q^{\ell_j}_{h_j},\,Q^n_{t,A_b}\big)$
+\EndFor
+\State $p\gets L^{-1}\#\{b:S_b\ge S_0\}$; reject $H_0$ if $p\le\alpha$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{assumption}[Symmetry of the rule]\label{ass:sym}
+(i) $U$ is independent of $(Z,\mathbb H)$. (ii) For each $(\mathbb H,U)$, the weights $\omega(Q^m_{c,A},\mathbb H,U)$ depend on the control sample only through its multiset of values.
+\end{assumption}
+
+\cref{ass:sym}(ii) holds for any rule written in terms of empirical measures. It can fail through auxiliary randomness. A natural implementation draws one matrix of multinomial bootstrap weights and attaches its $i$th column to the $i$th control \emph{by index} in every row, and the result then depends on index order. Attaching the shared weights to the controls \emph{sorted by value}, or drawing independent weights in every row, restores symmetry. The first version of our code used index order; we corrected it before the reported runs.
+
+\begin{theorem}[Finite-sample level of full reselection]\label{thm:level}
+Suppose $Q_c=Q_t$, \cref{ass:sym} holds, and $\mathbb H$ is independent of $Z$, with arbitrary historical distributions. Then for all $m,n,\ell_1,\dots,\ell_J$ and $B\ge1$,
+\[
+\P(p_{\rm FR}\le\alpha)\le\lfloor\alpha L\rfloor/L\le\alpha .
+\]
+\end{theorem}
+
+The proof (\cref{app:level}) shows that, conditionally on the unordered current pool, $\mathbb H$ and $U$, the value sets of $A_0,\dots,A_B$ are i.i.d.\ uniform subsets, so $S_0,\dots,S_B$ are exchangeable. Nothing is assumed about the historical distributions, the accuracy of any fusion bootstrap, or $B$. The guarantee concerns the final test only. It does not say that the fusion decisions inside the rows are calibrated equivalence tests.
+
+\paragraph{Freezing the selection.} The original procedure selects once, using the observed allocation, and keeps that selection in all resamples. With a finite set $\mathcal D$ of possible selections (for sourcewise fusion $|\mathcal D|\le2^J$) and $p_d$ the fixed-rule partial-permutation $p$-value for selection $d$, the frozen test rejects when $p_{\hat d}\le\alpha$ with $\hat d=\hat d(Q_c^m,\mathbb H)$.
+
+\begin{proposition}[What freezing guarantees]\label{prop:frozen}
+Under $H_0$, $\P(p_{\hat d}\le\alpha)\le\sum_{d\in\mathcal D}\P(p_d\le\alpha,\hat d=d)\le\min\{1,|\mathcal D|\alpha\}$ for all sample sizes. Running the frozen test at level $\alpha/|\mathcal D|$ therefore has level $\alpha$.
+\end{proposition}
+
+The bound is a union bound and is typically loose. The mechanism of excess rejection is that $\hat d$ and $p_d$ are computed from the same control values. For instance, with $Q_h=Q_c$, a source is rejected for fusion exactly when $\hxi_c$ lies far from $\hxi_h\approx\xi_c$; then $\hxi_c$ also tends to lie far from $\hxi_t$, and the current-only branch rejects too often. Asymptotically this disappears when $\P(\hat d=d^\ast)\to1$ for a deterministic $d^\ast$; the oracle-coupling argument in Study~B makes this precise. It does not disappear when the selection probability stays strictly between $0$ and $1$.
+
+\paragraph{Permuting historical data.} One might instead pool all historical, control and treated observations and permute every label.
+
+\begin{proposition}[Permuting historical data is invalid under heterogeneity]\label{prop:fullperm}
+Let $J=1$, $Q_c=Q_t$, $D(Q_c,Q_h)>0$, fixed ratios $m/n,\ell/n$, $\alpha L\ge1$ and $B$ fixed. The test that always merges and permutes all $m+\ell+n$ labels has rejection probability tending to one.
+\end{proposition}
+
+The partial permutation of \citet{yang2026} avoids this by leaving historical observations in place; full reselection inherits this feature.
+
+\subsection{A-1: risk-weighted borrowing}\label{sec:weights}
+
+\paragraph{Fixed-weight risk.} Treat $\hxi_f(w)$ as an estimator of $\xi_c$.
+
+\begin{proposition}[Fixed-weight risk decomposition]\label{prop:risk}
+For fixed $w\in\Wset$, with $s=s(w)$ and $v_j=v_{Q_{h_j}}$,
+\[
+R(w):=\E\norm{\hxi_f(w)-\xi_c}^2=\Big\|\sum_jw_jb_j\Big\|^2+(1-s)^2\frac{v_c}{m}+\sum_jw_j^2\frac{v_j}{\ell_j}.
+\]
+Moreover $\E\hat G_{ij}=\ip{b_i}{b_j}+v_c/m+\1\{i=j\}v_j/\ell_j$ and $\E\hat v_c=v_c$, so
+\begin{equation}\label{eq:RU}
+\hat R_U(w):=w^\top\hat Gw+(1-2s)\frac{\hat v_c}{m}\qquad\text{satisfies}\qquad \E\hat R_U(w)=R(w)\ \text{ for every fixed } w.
+\end{equation}
+\end{proposition}
+
+The bias term $\norm{\sum_jw_jb_j}^2=w^\top Gw$ with $G_{ij}=\ip{b_i}{b_j}$ depends on the angles between shift directions, not just on the distances $\norm{b_j}=D(Q_c,Q_{h_j})$. Two sources with $\ip{b_1}{b_2}<0$ can be combined with smaller bias than either alone, while sources with aligned shifts compound. $\hat R_U$ uses the full matrix $\hat G$. The plug-in objective of the earlier draft, $L(w)=w^\top\hat Gw+(1-s)^2\hat v_c/m+\sum_jw_j^2\hat v_j/\ell_j$, has expectation $R(w)+s^2v_c/m+\sum_jw_j^2v_j/\ell_j$: it counts the sampling variance of the sources twice and is biased toward less borrowing. We keep it as a comparison (WC).
+
+\paragraph{Stein connection.} For $J=1$ the minimiser of $\hat R_U$ over $w\in[0,1]$ is $\hat w=\min\{1,\hat v_c/(m\,D^2(Q_c^m,Q_h^\ell))\}$, so $\hxi_f=\hxi_c+\hat w(\hxi_h-\hxi_c)$ is a positive-part James--Stein-type shrinkage of the current embedding towards the historical one, in the spirit of the kernel mean shrinkage estimators of \citet{muandet2016} with a data-defined target. For general $J$, the interior stationary point is $\hat w=(\hat v_c/m)\hat G^{-1}\1$ when $\hat G\succ0$.
+
+\paragraph{Selected weights.} We minimise $\hat R_U$ over a prespecified finite set $\mathcal W_g\subset\Wset$ containing $0$ (a grid with step $0.05$ and $s\le s_{\max}=0.9$ in our experiments), with ties broken towards smaller $s$:
+\[
+\hat w=\argmin_{w\in\mathcal W_g}\hat R_U(w).
+\]
+The fixed-$w$ identity \eqref{eq:RU} does \emph{not} make $\hat R_U(\hat w)$ unbiased for the risk of the selected estimator. The minimum of unbiased estimates is optimistic: $\E\min_w\hat R_U(w)\le\min_wR(w)$. What does survive selection is a deterministic bound.
+
+\begin{theorem}[Deterministic displacement]\label{thm:disp}
+Let $m\ge2$. If $\hat w$ satisfies $\hat R_U(\hat w)\le\hat R_U(0)$, which holds for any minimiser over a set containing $0$, then for every data set
+\[
+D^2\big(\hat Q_f(\hat w),Q_c^m\big)=\hat w^\top\hat G\hat w\le 2\hat s\,\frac{\hat v_c}{m}\le\frac{2\kappa^2\hat s}{m-1}\le\frac{2\kappa^2}{m-1}.
+\]
+The same holds with $Q_c^m$ replaced by $Q^m_{c,A_b}$ in every row of \cref{alg:fr}.
+\end{theorem}
+
+\begin{proposition}[Risk safety of the selected estimator]\label{prop:safety}
+Under the conditions of \cref{thm:disp}, for any historical distributions,
+\[
+\Big(\E\norm{\hxi_f(\hat w)-\xi_c}^2\Big)^{1/2}\le\Big(\frac{2\kappa^2}{m-1}\Big)^{1/2}+\Big(\frac{v_c}{m}\Big)^{1/2}\le\frac{(1+\sqrt2)\,\kappa}{\sqrt{m-1}} .
+\]
+\end{proposition}
+
+Thus the selected estimator is never worse than the current-only estimator by more than a constant factor ($\le(1+\sqrt2)^2\approx5.8$ when $v_c=\kappa^2$), however bad the sources. This is a worst-case guarantee only, not a promise of improvement. Reducing $\E\norm{\hxi_f-\xi_c}^2$ also does not imply higher power. Power depends on the whole null and alternative distributions of \eqref{eq:Tbor}, and a borrowing bias aligned with $\xi_t-\xi_c$ reduces the contrast even when it lowers the embedding risk (\cref{sec:results}).
+
+\begin{algorithm}[t]
+\caption{Risk-weighted borrowing with full reselection (WU-R)}\label{alg:wu}
+\begin{algorithmic}[1]
+\Require data, grid $\mathcal W_g\ni0$ ordered by $s$, $B$, $\alpha$
+\State Precompute the Gram matrix $K$ of all $N+\sum_j\ell_j$ outcomes; $r_j(i)=\ell_j^{-1}\sum_{k}k(Z_i,x^{h_j}_k)$; $H_{ij}=\ip{\hxi_i}{\hxi_j}$
+\State Draw $A_1,\dots,A_B$; $A_0=\{1,\dots,m\}$
+\For{$b=0,\dots,B$}
+\State $c_b=\1_{A_b}/m$, $t_b=\1_{A_b^c}/n$; $\ip{\hxi_c}{\hxi_c}=c_b^\top Kc_b$, $\ip{\hxi_c}{\hxi_j}=c_b^\top r_j$, etc.
+\State $\hat G_b=H-\1 (c_b^\top r)^{\!\top}-(c_b^\top r)\1^\top+c_b^\top Kc_b\,\1\1^\top$;\quad $\hat v_{c,b}=\tfrac{m}{m-1}(\overline{k(x,x)}_{A_b}-c_b^\top Kc_b)$
+\State $w_b=\argmin_{w\in\mathcal W_g}\{w^\top\hat G_bw+(1-2s(w))\hat v_{c,b}/m\}$ \Comment{first minimiser}
+\State $S_b=\norm{(1-s_b)\hxi_{c,b}+\sum_jw_{b,j}\hxi_j-\hxi_{t,b}}^2$ \Comment{quadratic form in $K$}
+\EndFor
+\State $p=L^{-1}\#\{b:S_b\ge S_0\}$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{A-2: sourcewise equivalence fusion followed by pooling}\label{sec:sourcewise}
+
+\paragraph{Fusion tests.} For each source $j$ test
+\[
+H^f_{0,j}:D(Q_c,Q_{h_j})\ge\theta_j\quad\text{against}\quad H^f_{1,j}:D(Q_c,Q_{h_j})<\theta_j
+\]
+with the statistic $\theta_j-D(Q_c^m,Q_{h_j}^{\ell_j})$ of \citet{liugandy2026}. Draw $W^{(r)}\sim\mathrm{Mult}(m;\1/m)$ and $\tilde W^{(r)}_j\sim\mathrm{Mult}(\ell_j;\1/\ell_j)$, $r=1,\dots,B_f$, compute
+\[
+S^{(r)}_j=\frac1m\Big\|\sum_i(W^{(r)}_i-1)k(\cdot,x^c_{(i)})\Big\|+\frac1{\ell_j}\Big\|\sum_k(\tilde W^{(r)}_{j,k}-1)k(\cdot,x^{h_j}_k)\Big\|,
+\]
+where $x^c_{(i)}$ are the controls sorted by value, so the computation is symmetric (\cref{ass:sym}). Each norm is a quadratic form $(W-\1)^\top K(W-\1)$ in the corresponding Gram block. Let $q_j$ be the $\lceil(1-\alpha_{f,j})B_f\rceil$-th order statistic of $(S^{(r)}_j)_r$. Source $j$ is accepted if
+\begin{equation}\label{eq:accept}
+D(Q_c^m,Q_{h_j}^{\ell_j})+q_j<\theta_j .
+\end{equation}
+The current-control bootstrap weights can be shared across sources. The historical weights are label-invariant and are computed once.
+
+\paragraph{Pooling, empty sets and the final test.} The accepted set $\hat S$ is pooled with sample-size weights $w_j=\ell_j\1\{j\in\hat S\}/(m+\ell_{\hat S})$. If $\hat S=\emptyset$, the rule returns $w=0$ and the final statistic reduces to the current-only statistic, so no separate branch is needed. The final test uses the statistic $T^{\rm bor}$ with full reselection (SW-R): \eqref{eq:accept} is recomputed in every row with that row's control sample and the same $W^{(r)},\tilde W^{(r)}$. For comparison we also run the frozen version with partial permutation (SW-F), the frozen version with the original partial bootstrap (SW-PB, with a current-only permutation test when $\hat S=\emptyset$), and a sample-splitting version (SW-S, \cref{prop:split}).
+
+\paragraph{Multiplicity: two different error rates.} A \emph{false acceptance} is the inclusion of a source with $D(Q_c,Q_{h_j})\ge\theta_j$. Its familywise rate concerns the fusion stage only.
+
+\begin{proposition}[Fusion-stage familywise error]\label{prop:fwer}
+Let $\mathcal J_0=\{j:D(Q_c,Q_{h_j})\ge\theta_j\}$. Then $\P(\hat S\cap\mathcal J_0\neq\emptyset)\le\sum_{j\in\mathcal J_0}\P(\text{$j$ accepted})$. If each fusion test has asymptotic level $\alpha_{f,j}$ under $H^f_{0,j}$ (as in original Theorem 3.1), then $\limsup\P(\hat S\cap\mathcal J_0\neq\emptyset)\le\sum_j\alpha_{f,j}$; Bonferroni levels $\alpha_{f,j}=\alpha_f/J$ give familywise error at most $\alpha_f$, with no independence assumption.
+\end{proposition}
+
+This proposition is a statement about the fusion stage only. The final Type-I error of SW-R is controlled by \cref{thm:level} whatever the fusion levels are. Conversely, a Bonferroni-adjusted fusion stage does \emph{not} by itself make a frozen final test valid: \cref{prop:frozen} still applies, because the selection and the final statistic share the control data. The choice of $\alpha_{f,j}$ affects power, not the final level of SW-R.
+
+\begin{lemma}[Displacement after an equivalence gate]\label{lem:gate}
+In every row, $D(\hat Q_{f,b},Q^m_{c,A_b})\le\rho\,\max_j\theta_j$ with $\rho=\ell_{\rm tot}/(m+\ell_{\rm tot})$, $\ell_{\rm tot}=\sum_j\ell_j$.
+\end{lemma}
+
+\begin{lemma}[Order of the fusion critical value]\label{lem:q}
+Let $k_f=\lceil(1-\alpha_{f,j})B_f\rceil$. For every row, $\E q_j^2\le 2\kappa^2(1/m+1/\ell_j)\,B_f/(B_f-k_f+1)$. In particular $q_j=O_P(n^{-1/2})$ under fixed ratios if $B_f/(B_f-k_f+1)$ stays bounded.
+\end{lemma}
+
+\paragraph{Sample splitting.} Split the controls at random into a pilot set of size $m_1$ and a test set of size $m_2=m-m_1$. Select $\hat S$ (or $\hat w$) from the pilot and the historical data, then run a fixed-rule partial permutation on the test controls and the treated units, with weights $\ell_j/(m_2+\ell_{\hat S})$.
+
+\begin{proposition}[Sample splitting]\label{prop:split}
+Under $H_0$ the split test has level $\lfloor\alpha L\rfloor/L$ for every selection rule.
+\end{proposition}
+
+Splitting pays for exactness with $m_1$ fewer controls in the final comparison, which is costly exactly when $m$ is small.
+
+\subsection{Power}\label{sec:power}
+
+Let $d=D(Q_c,Q_t)$, $k_\alpha=\lfloor\alpha L\rfloor$, and
+\[
+v_{m,n}=\kappa^2\Big(\frac1m+\frac1n\Big),\qquad M_{m,n}=\frac{\kappa^2N^2}{mn(N-1)} .
+\]
+Both are $O(n^{-1})$ under fixed ratios.
+
+\begin{theorem}[Type-II error under displacement control]\label{thm:typeII}
+Suppose $k_\alpha\ge1$ and, in every row of \cref{alg:fr}, $D(\hat Q_{f,b},Q^m_{c,A_b})\le\delta$ for a constant $\delta$. If $d>2\delta$, then
+\[
+\P(p_{\rm FR}>\alpha)\le\min\Big\{1,\ \frac{4\,(v_{m,n}+BM_{m,n}/k_\alpha)}{(d-2\delta)^2}\Big\}.
+\]
+\end{theorem}
+
+Since $B/k_\alpha\le 2/\alpha$ when $\alpha L\ge1$, the bound is of order $\{n(d-2\delta)^2\}^{-1}$. It is crude at small $n$ but explicit. It does not require independence of the permutation indicators, and it holds for any distributions, including sample-size-dependent ones. With $\delta=0$ it applies to the current-only test. The earlier draft proved a bound of the same form with a different exceedance count; the argument in \cref{app:power} uses $k_\alpha$ directly.
+
+\begin{corollary}[Uniform consistency of risk-weighted borrowing]\label{cor:uniform}
+For WU-R, \cref{thm:disp} gives $\delta=\delta_m=\kappa\sqrt{2/(m-1)}$. Under fixed ratios and fixed $B$ with $\alpha L\ge1$,
+\[
+\sup\big\{\P(p_{\rm FR}>\alpha):\ D(Q_c,Q_t)\ge d_n,\ \text{any }Q_{h_1},\dots,Q_{h_J}\big\}\to0\quad\text{whenever}\quad\sqrt n\,d_n\to\infty .
+\]
+In particular WU-R is consistent against every fixed alternative.
+\end{corollary}
+
+This is the same detection rate as for current-only testing. The rate is not shown to be optimal, and the corollary does not say that WU-R is more powerful than current-only testing at any fixed $n$.
+
+\begin{corollary}[Sourcewise fusion with a fixed radius]\label{cor:swpower}
+SW-R rejects with probability tending to one whenever $D(Q_c,Q_t)>2\rho\max_j\theta_j$.
+\end{corollary}
+
+The condition in \cref{cor:swpower} is only sufficient. The next result shows that some restriction is necessary.
+
+\begin{theorem}[Fixed-radius blind spot]\label{thm:blind}
+Let all sources share a distribution $Q_h$ with $0<D(Q_c,Q_h)<\theta$ ($\theta_j\equiv\theta$), let ratios $m/n$ and $\ell_j/n$ be fixed, and let
+\[
+Q_t=\gamma Q_c+(1-\gamma)Q_h,\qquad\gamma=\frac{m}{m+\ell_{\rm tot}} .
+\]
+Then $Q_t\neq Q_c$, and for fixed $B$ and fixed $B_f$ the rejection probabilities of SW-R, SW-F, ALL (always pool) and SW-PB all tend to zero. WU-R and the current-only test are consistent.
+\end{theorem}
+
+The alternative in \cref{thm:blind} is one for which the original condition $2(1-\gamma)D(Q_h,Q_c)\cos\beta<D(Q_c,Q_t)$ fails ($\cos\beta=1$ and $D(Q_c,Q_t)=(1-\gamma)D(Q_c,Q_h)$). Full reselection repairs calibration, not power, and this example is not removed by recalibration.
+
+\paragraph{Safeguard.} To protect against such losses we combine the current-only and borrowed statistics over the same rows. For $r\in\{\rm cur,bor\}$ let $p_{r,b}=L^{-1}\#\{a:S^r_a\ge S^r_b\}$ be the rank $p$-value of row $b$, $U_b=\min_rp_{r,b}$, and
+\begin{equation}\label{eq:pG}
+p_G=\frac1L\#\{b:U_b\le U_0\}.
+\end{equation}
+This is the minP calibration of \citet{westfallyoung1993}, and it differs from the unadjusted $\min(p_{\rm cur},p_{\rm bor})$.
+
+\begin{proposition}[Safeguard]\label{prop:guard}
+Under the conditions of \cref{thm:level}, $\P(p_G\le\alpha)\le\lfloor\alpha L\rfloor/L$. For every data set $p_G\le2\min(p_{\rm cur},p_{\rm bor})$; hence $\P(p_G>\alpha)\le\P(p_{\rm cur}>\alpha/2)$ and \cref{thm:typeII} with $\delta=0$ and $k_{\alpha/2}=\lfloor\alpha L/2\rfloor\ge1$ bounds the Type-II error of the safeguarded test for every alternative and every borrowing rule.
+\end{proposition}
+
+\begin{table}[t]
+\centering\small
+\caption{Guarantees of the procedures compared (fixed number $B$ of permutations, $\alpha L\ge1$). ``Exact'' means $\P_{H_0}(\text{reject})\le\lfloor\alpha L\rfloor/L$ for all sample sizes and all historical distributions.}\label{tab:guarantees}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Code & Procedure & Final level & Consistency vs.\ fixed $Q_t\ne Q_c$\\
+\midrule
+CUR & current only & exact & all\\
+ALL & pool all sources, partial permutation & exact & not all (\cref{thm:blind})\\
+WU-R & unbiased-risk weights, full reselection & exact (\cref{thm:level}) & all, uniform $\sqrt n$ (\cref{cor:uniform})\\
+WU-F & same weights, frozen & no guarantee & not established\\
+WC-R & conservative-proxy weights, full reselection & exact & all (displacement $\le\hat v_c/m$)\\
+SW-R & sourcewise fusion, full reselection & exact & not all (\cref{thm:blind})\\
+SW-F / SW-PB & sourcewise fusion, frozen & $\le\min(1,2^J\alpha)$ (\cref{prop:frozen}) & not all\\
+SW-S, WU-S & sample splitting & exact (\cref{prop:split}) & sufficient conditions only\\
+G-WU, G-SW & minP with current only & exact & all (\cref{prop:guard})\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%======================================================================
+\section{Synthetic Experiments}\label{sec:experiments}
+\input{sec_experiments_A.tex}
+
+%======================================================================
+\section{Results}\label{sec:results}
+\input{sec_results_A.tex}
+
+%======================================================================
+\appendix
+\section{Proofs}\label{app:proofs}
+
+\subsection{Proof of \texorpdfstring{\cref{thm:level}}{Theorem 3.2} and of the level part of \texorpdfstring{\cref{prop:guard}}{Proposition 3.15}}\label{app:level}
+
+\begin{lemma}[Rank lemma]\label{lem:rank}
+Let $S_0,\dots,S_B$ be exchangeable, $L=B+1$, and $R_b=\#\{a:S_a\ge S_b\}$. For every integer $k\ge0$, $\P(R_0\le k)\le k/L$.
+\end{lemma}
+\begin{proof}
+Let $I=\{b:R_b\le k\}$. If $I\neq\emptyset$, choose $b^\ast\in I$ with the smallest value $S_{b^\ast}$ among $I$. Every $b\in I$ satisfies $S_b\ge S_{b^\ast}$, so $I\subseteq\{a:S_a\ge S_{b^\ast}\}$, a set of size $R_{b^\ast}\le k$. Hence $\sum_b\1\{R_b\le k\}\le k$ deterministically. By exchangeability $\P(R_b\le k)$ does not depend on $b$, so $\P(R_0\le k)=L^{-1}\E\sum_b\1\{R_b\le k\}\le k/L$.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:level}]
+Write $Z=\sigma(O)$, where $O$ is the multiset of pooled values and $\sigma$ the arrangement of those values in positions. Under $H_0$ the coordinates of $Z$ are i.i.d., so conditionally on $O$ (and on $\mathbb H,U$, which are independent of $Z$) the arrangement is uniform. Let $V_b$ be the multiset of values at positions $A_b$. Then $V_0=\sigma(A_0)$ is a uniform $m$-sub-multiset of $O$. For $b\ge1$, conditionally on $\sigma$, $V_b=\sigma(A_b)$ are i.i.d.\ uniform because $A_b$ are i.i.d.\ uniform and independent of $\sigma$; hence $V_1,\dots,V_B$ are i.i.d.\ uniform and independent of $\sigma$, in particular of $V_0$. So $V_0,\dots,V_B$ are i.i.d.\ given $(O,\mathbb H,U)$. By \cref{ass:sym}(ii) the row statistic is $S_b=h(V_b;O,\mathbb H,U)$ for one measurable $h$: the treatment multiset is $O\setminus V_b$, and the weights depend on the control sample only through $V_b$. Therefore $S_0,\dots,S_B$ are conditionally i.i.d., hence exchangeable. Now $p_{\rm FR}\le\alpha$ iff $R_0\le\lfloor\alpha L\rfloor$, and \cref{lem:rank} gives the conditional bound $\lfloor\alpha L\rfloor/L$; integrating over $(O,\mathbb H,U)$ completes the proof. If the auxiliary randomness is drawn independently in each row ($U_b$ i.i.d.), the same argument applies to the i.i.d.\ pairs $(V_b,U_b)$.
+\end{proof}
+
+\begin{proof}[Level part of \cref{prop:guard}]
+The vector $(U_0,\dots,U_B)$ is obtained from $(S^{\rm cur}_b,S^{\rm bor}_b)_{b}$ by a map that commutes with permutations of the row index, so it is exchangeable when the pairs are. Apply \cref{lem:rank} to $-U_b$: $p_G\le\alpha$ iff $\#\{b:U_b\le U_0\}\le\lfloor\alpha L\rfloor$.
+\end{proof}
+
+\subsection{Proofs of \texorpdfstring{\cref{prop:frozen,prop:fullperm,prop:split}}{Propositions 3.3, 3.4 and 3.12}}
+
+\begin{proof}[Proof of \cref{prop:frozen}]
+$\{p_{\hat d}\le\alpha\}=\bigcup_{d}\{p_d\le\alpha,\hat d=d\}$, so $\P(p_{\hat d}\le\alpha)\le\sum_d\P(p_d\le\alpha)$, and each fixed-rule $p_d$ satisfies $\P(p_d\le\alpha)\le\alpha$ by \cref{thm:level} with a constant rule.
+\end{proof}
+
+\begin{proof}[Proof of \cref{prop:fullperm}]
+Let $\gamma=m/(m+\ell)$. The observed statistic $D^2(\gamma Q_c^m+(1-\gamma)Q_h^\ell,Q_t^n)$ converges in probability to $(1-\gamma)^2D^2(Q_h,Q_c)>0$ because each empirical embedding converges in $\Hk$ (bounded kernel, Hilbert-space law of large numbers). For a uniformly random allocation of all $M=m+\ell+n$ values into groups of sizes $m+\ell$ and $n$, the finite-population identity \eqref{eq:perm-identity} below, with $(m,n,N)$ replaced by $(m+\ell,n,M)$, gives $\E[D^2\mid\text{data}]\le\kappa^2M^2/\{(m+\ell)nM-(m+\ell)n\}=O(n^{-1})$. Each of the $B$ permuted statistics therefore tends to $0$ in probability, so with probability tending to one all of them are below the observed statistic, giving $p=1/L\le\alpha$.
+\end{proof}
+
+\begin{proof}[Proof of \cref{prop:split}]
+Conditionally on the pilot controls and $\mathbb H$, the selected weights are fixed, and the test controls and treated units are i.i.d.\ from $Q_c=Q_t$ and independent of the pilot. \Cref{thm:level} with a constant rule applies conditionally, and integrating gives the claim.
+\end{proof}
+
+\subsection{Proofs for the risk-weighted rule}
+
+\begin{proof}[Proof of \cref{prop:risk}]
+Write $e_c=\hxi_c-\xi_c$ and $e_j=\hxi_j-\xi_j$. These are independent, mean zero (Bochner expectation), with $\E\norm{e_c}^2=v_c/m$ and $\E\norm{e_j}^2=v_j/\ell_j$, since the off-diagonal terms of $\norm{m^{-1}\sum_i\{k(\cdot,x_i)-\xi_c\}}^2$ have mean zero. Then
+\[
+\hxi_f(w)-\xi_c=\sum_jw_jb_j+(1-s)e_c+\sum_jw_je_j,
+\]
+and expanding the square, all cross terms have mean zero, which gives $R(w)$. Similarly $\hxi_i-\hxi_c=b_i+e_i-e_c$ gives $\E\hat G_{ij}=\ip{b_i}{b_j}+\E\ip{e_i}{e_j}+\E\norm{e_c}^2=\ip{b_i}{b_j}+\1\{i=j\}v_i/\ell_i+v_c/m$. For $\hat v_c$, $\E\norm{\hxi_c}^2=\norm{\xi_c}^2+v_c/m$, so $\E\hat v_c=\frac{m}{m-1}(v_c-v_c/m)=v_c$. Finally $\E w^\top\hat Gw=\norm{\sum_jw_jb_j}^2+s^2v_c/m+\sum_jw_j^2v_j/\ell_j$, and $R(w)-\E w^\top\hat Gw=\{(1-s)^2-s^2\}v_c/m=(1-2s)v_c/m$.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:disp}]
+$\hat R_U(0)=\hat v_c/m$, so $\hat R_U(\hat w)\le\hat R_U(0)$ reads $\hat w^\top\hat G\hat w+(1-2\hat s)\hat v_c/m\le\hat v_c/m$, i.e.\ $\hat w^\top\hat G\hat w\le2\hat s\hat v_c/m$. Since $\hat v_c=\frac{m}{m-1}\{m^{-1}\sum_ik(x_i,x_i)-\norm{\hxi_c}^2\}\le\frac{m}{m-1}\kappa^2$, we get $\hat v_c/m\le\kappa^2/(m-1)$. The identity $\hat w^\top\hat G\hat w=\norm{\hxi_f(\hat w)-\hxi_c}^2$ is \eqref{eq:gram}. Nothing in the argument uses the distribution of the data, so it applies to every row.
+\end{proof}
+
+\begin{proof}[Proof of \cref{prop:safety}]
+By Minkowski's inequality in $L^2(\P;\Hk)$, $(\E\norm{\hxi_f(\hat w)-\xi_c}^2)^{1/2}\le(\E\norm{\hxi_f(\hat w)-\hxi_c}^2)^{1/2}+(\E\norm{\hxi_c-\xi_c}^2)^{1/2}$; apply \cref{thm:disp} to the first term and $\E\norm{e_c}^2=v_c/m\le\kappa^2/(m-1)$ to the second.
+\end{proof}
+
+\subsection{Proofs for sourcewise fusion}
+
+\begin{proof}[Proof of \cref{prop:fwer}]
+The first inequality is a union bound over $j\in\mathcal J_0$ and needs no independence between the tests, which share the control sample. The limit statement follows termwise because $J$ is fixed.
+\end{proof}
+
+\begin{proof}[Proof of \cref{lem:gate}]
+Every accepted $j$ satisfies $D(Q^m_{c,A_b},Q^{\ell_j}_{h_j})<\theta_j-q_j\le\theta_j$ because $q_j\ge0$. With sample-size weights, $\hxi_{f,b}-\hxi_{c,b}=\sum_{j\in\hat S_b}w_j(\hxi_j-\hxi_{c,b})$, so by the triangle inequality its norm is at most $\sum_{j\in\hat S_b}w_j\theta_j\le\max_j\theta_j\cdot\ell_{\hat S_b}/(m+\ell_{\hat S_b})\le\rho\max_j\theta_j$.
+\end{proof}
+
+\begin{proof}[Proof of \cref{lem:q}]
+For a sample $a_1,\dots,a_M$ with embedding $\bar a$ and Efron weights $W$, $\E^\ast\norm{M^{-1}\sum_i(W_i-1)k(\cdot,a_i)}^2=M^{-1}\{M^{-1}\sum_ik(a_i,a_i)-\norm{\bar a}^2\}\le\kappa^2/M$. Hence $\E (S^{(r)})^2\le2\kappa^2(1/m+1/\ell_j)$. At least $B_f-k_f+1$ of the $S^{(r)}$ are $\ge q_j$, so $(B_f-k_f+1)q_j^2\le\sum_r(S^{(r)})^2$; take expectations. The same argument with $M=$ pool size covers the label-invariant pooled variant used in Study~B.
+\end{proof}
+
+\subsection{Proofs for power}\label{app:power}
+
+\begin{lemma}[Finite-population identity]\label{lem:perm}
+For fixed values $Z_1,\dots,Z_N$ and a uniform random $m$-subset $A$, with $a_i=k(\cdot,Z_i)-N^{-1}\sum_{i'}k(\cdot,Z_{i'})$,
+\begin{equation}\label{eq:perm-identity}
+\E_A\norm{\hxi_{c,A}-\hxi_{t,A}}^2=\frac{N}{mn(N-1)}\sum_{i=1}^N\norm{a_i}^2\le M_{m,n}.
+\end{equation}
+\end{lemma}
+\begin{proof}
+Since $\sum_ia_i=0$, $\hxi_{c,A}-\hxi_{t,A}=(m^{-1}+n^{-1})\sum_{i\in A}a_i=\frac{N}{mn}\sum_iI_ia_i$ with $I_i=\1\{i\in A\}$. Using $\E I_i=m/N$, $\E I_iI_{i'}=m(m-1)/\{N(N-1)\}$ for $i\ne i'$, and $\sum_{i\ne i'}\ip{a_i}{a_{i'}}=-\sum_i\norm{a_i}^2$,
+\[
+\E\Big\|\sum_iI_ia_i\Big\|^2=\Big\{\frac mN-\frac{m(m-1)}{N(N-1)}\Big\}\sum_i\norm{a_i}^2=\frac{mn}{N(N-1)}\sum_i\norm{a_i}^2 .
+\]
+Multiply by $N^2/(mn)^2$. Finally $\sum_i\norm{a_i}^2=\sum_ik(Z_i,Z_i)-N\norm{\bar\xi}^2\le N\kappa^2$.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:typeII}]
+Write $\hat\Delta=\norm{\hxi_c-\hxi_t}$ (observed allocation) and $R_b=\norm{\hxi_{c,A_b}-\hxi_{t,A_b}}$. In every row the triangle inequality and the displacement condition give
+\[
+\hat\Delta-\delta\le\sqrt{S_0},\qquad \sqrt{S_b}\le R_b+\delta .
+\]
+The test does not reject iff $K:=\#\{b\ge1:S_b\ge S_0\}\ge k_\alpha$. Let $\varepsilon=\tau=(d-2\delta)/2>0$ and $E=\{\hat\Delta\ge d-\varepsilon\}$. On $E$, $S_b\ge S_0$ implies $R_b\ge d-\varepsilon-2\delta=\tau$, so $K\le K':=\#\{b\ge1:R_b\ge\tau\}$. Hence
+\[
+\P(p_{\rm FR}>\alpha)\le\P(E^c)+\P(K'\ge k_\alpha)\le\frac{\E\norm{(\hxi_t-\hxi_c)-(\xi_t-\xi_c)}^2}{\varepsilon^2}+\frac{\E K'}{k_\alpha}.
+\]
+The first numerator equals $v_t/n+v_c/m\le v_{m,n}$. Conditionally on the data the $A_b$ are uniform, so by Markov's inequality and \cref{lem:perm}, $\E[K'\mid Z]\le B\,M_{m,n}/\tau^2$. Substituting $\varepsilon=\tau=(d-2\delta)/2$ gives the bound.
+\end{proof}
+
+\begin{proof}[Proof of \cref{cor:uniform,cor:swpower}]
+For \cref{cor:uniform}, \cref{thm:disp} holds in every row, so \cref{thm:typeII} applies with $\delta_m=\kappa\sqrt{2/(m-1)}$, and the bound depends on the distributions only through $d$. Since $\sqrt n\delta_m=O(1)$ and $\sqrt nd_n\to\infty$, we have $n(d_n-2\delta_m)^2\to\infty$ and the bound tends to zero uniformly. For \cref{cor:swpower} use \cref{lem:gate}.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:blind}]
+$Q_t\ne Q_c$ because $\xi_t-\xi_c=(1-\gamma)(\xi_h-\xi_c)\neq0$. Write $D_h=D(Q_c,Q_h)$, $\lambda=m/N$ and $\xi_d=\lambda\xi_c+(1-\lambda)\xi_t$.
+
+\emph{Row $0$.} $D(Q^m_c,Q^{\ell_j}_{h_j})\to D_h<\theta$ and $q_j\to0$ in probability (\cref{lem:q}), so every source is accepted with probability tending to one. Then $\hxi_f=\gamma\hxi_c+(1-\gamma)\ell_{\rm tot}^{-1}\sum_j\ell_j\hxi_j\to\gamma\xi_c+(1-\gamma)\xi_h=\xi_t$, so $S_0\to0$.
+
+\emph{Rows $b\ge1$.} By \cref{lem:perm} applied to the pool and its complement, $\hxi_{c,A_b}$ and $\hxi_{t,A_b}$ both converge in probability to the pooled embedding, which converges to $\xi_d$. Hence $D(Q^m_{c,A_b},Q_{h_j}^{\ell_j})\to\norm{\xi_d-\xi_h}$, where
+\[
+\xi_d-\xi_h=\{\lambda+(1-\lambda)\gamma\}(\xi_c-\xi_h),
+\]
+so $\norm{\xi_d-\xi_h}=\{\lambda+(1-\lambda)\gamma\}D_h<\theta$. Every source is accepted in every row with probability tending to one, and $S_b\to\norm{\gamma\xi_d+(1-\gamma)\xi_h-\xi_d}^2=(1-\gamma)^2\{\lambda+(1-\lambda)\gamma\}^2D_h^2=:c_\ast>0$.
+
+With $B$ fixed, $\P(S_b>S_0\ \forall b\ge1)\to1$, on which event $p_{\rm FR}=1>\alpha$. The same holds for SW-F (row-$0$ selection) and for ALL. For SW-PB, $\Delta=\sqrt n\{S_0-\norm{\hxi_f-\hxi_c}^2\}$ with $\norm{\hxi_f-\hxi_c}^2\to(1-\gamma)^2D_h^2>0$, so $\Delta\to-\infty$. The bootstrap statistic is $\sqrt n\{-2\ip{A^\ast}{B^\ast}+\norm{B^\ast}^2\}$ with $\norm{A^\ast}\le2\kappa$ and $B^\ast=O_P(n^{-1/2})$, so the critical value is $O_P(1)$. If $\hat S=\emptyset$ the current-only branch is used, which has probability tending to zero. WU-R is consistent by \cref{cor:uniform}, and the current-only test by \cref{thm:typeII} with $\delta=0$.
+\end{proof}
+
+\begin{proof}[Proof of \cref{prop:guard}, power part]
+For any vector $T$ and $u\in[0,1]$, \cref{lem:rank}'s counting step gives $\#\{b:p_{r,b}\le u\}\le\lfloor uL\rfloor$. With $u=U_0=\min_rp_{r,0}$, $\#\{b:U_b\le u\}\le\sum_r\#\{b:p_{r,b}\le u\}\le2uL$, so $p_G\le2U_0$. If $p_G>\alpha$ then $p_{\rm cur}>\alpha/2$. The current-only test at level $\alpha/2$ rejects iff $\#\{b\ge1:S^{\rm cur}_b\ge S^{\rm cur}_0\}\le k_{\alpha/2}-1$, and the proof of \cref{thm:typeII} with $\delta=0$ and $k_{\alpha/2}$ in place of $k_\alpha$ applies.
+\end{proof}
+
+\section{Additional results}\label{app:additional}
+\input{app_additional_A.tex}
+
+\section{Implementation and reproducibility}\label{app:repro}
+\input{app_repro.tex}
+
+%======================================================================
+\input{references.tex}
+
+\end{document}
