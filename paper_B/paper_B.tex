@@ -19,7 +19,7 @@
 \begin{document}
 
 \begin{titlepage}
-\vspace*{18mm}
+\vspace*{2mm}
 {\small\textsc{Working paper \quad$\cdot$\quad Study B of two follow-up studies}}\par
 \vspace{6mm}
 \rule{\textwidth}{0.6pt}\par\vspace{5mm}
@@ -34,8 +34,8 @@
 \textbf{Companion} & Study A: \emph{Multi-source distributional test-then-pool}. \\[1mm]
 \textbf{Materials} & Code, seeds, raw results: \url{https://github.com/Yu-Jusang/ttp-extensions}
 \end{tabularx}
-\vfill
-\begin{abstract}
+\vspace{7mm}
+\begin{abstract}\small
 \noindent With a fixed equivalence radius $\theta$, the distributional test-then-pool (TTP) procedure of \citet{yang2026} keeps borrowing a historical control that differs from the current control by up to $\theta$, and it is not consistent against alternatives in which the treatment effect points in the direction of the historical shift (their Remark~3.19). We analyse prespecified schedules $\theta_n=\theta_0(n/n_0)^{-a}$ and borrowing masses $b_n\to0$. For the fusion stage we prove that an identical source is retained with probability tending to one when $n\theta_n^2\to\infty$, and is eventually discarded when $\sqrt n\,\theta_n\to0$; a fixed shifted source is discarded whenever $\theta_n\to0$; we also give explicit selection-error bounds. Calibrated by full reselection, the final test has finite-sample level for every schedule, and it is consistent against every fixed alternative as soon as $\theta_n\to0$. Freezing the selection, as in the original procedure, gives pointwise asymptotic validity and consistency by coupling with an oracle, but not uniformly. We prove that the price of shrinking radii is a local blind spot of exact order $\theta_n$: there are alternatives with $D(Q_c,Q_t)=c\,\theta_n\gg n^{-1/2}$ for which the power tends to zero although the current-only test has power tending to one. No radius schedule both retains identical sources and is uniformly consistent at the $\sqrt n$ scale. A minP safeguard, or the soft risk weights of the companion study, avoids this trade-off. Vanishing borrowing mass restores consistency but gives no first-order local power gain from identical sources. The original partial bootstrap degenerates at $Q_h=Q_c$; a Gaussian-limit calculation and simulations suggest that it is conservative there, which we state as a conjecture. Simulations with $n$ up to $800$ confirm these patterns and show their finite-sample sizes.
 \end{abstract}
 \end{titlepage}
@@ -97,7 +97,7 @@ g_{\rm PP}=(1-r)\big\{(1+r)\norm{\Gamma}^2-2\ip{A}{\Gamma}\big\},\quad r=(1-\gam
 \]
 The test is consistent when the gap is positive. The partial-bootstrap condition is exactly the printed $2(1-\gamma)D(Q_h,Q_c)\cos\beta<D(Q_c,Q_t)$ of Theorem~3.6. For partial permutation we re-derived the gap from the limits $\norm{A-\Gamma}^2$ (observed) and $\norm{A-r\Gamma}^2$ (permuted, with the pooled current mixture $\lambda Q_c+\eta Q_t$). This gives $2(1-\gamma)D(Q_h,Q_c)\cos\beta<\{1+(1-\gamma)\eta\}D(Q_c,Q_t)$, which differs in form from the condition printed in Theorem~3.9; we could not reconcile the two parameterisations, and nothing below depends on the difference. Both gaps can be nonpositive when $\xi_t-\xi_c$ points along $\xi_h-\xi_c$, and with a fixed $\theta$ such a source is merged with probability tending to one. Remark~3.19 therefore records a lack of consistency against all alternatives.
 
-The companion Study~A reviews two further steps of the original argument: conditioning the permutation test on the fusion event (their Theorem~A.4) and the boundary limit of the fusion test. It shows that freezing a selection is controlled in general only by $|\mathcal D|\alpha$, and that full reselection is exact. We reuse these results and refer to them as A-Theorem~3.2 (exact level), A-Theorem~3.13 (Type-II bound) and A-Proposition~3.15 (minP safeguard). Their statements are repeated where needed.
+The companion Study~A reviews two further steps of the original argument: conditioning the permutation test on the fusion event (their Theorem~A.4) and the boundary limit of the fusion test. It shows that freezing a selection is controlled in general only by $|\mathcal D|\alpha$, and that full reselection is exact. We reuse these results and refer to them as A-Theorem~3.2 (exact level), A-Theorem~3.12 (Type-II bound) and A-Proposition~3.16 (minP safeguard). Their statements are repeated where needed.
 
 \subsection{Related work}\label{sec:related}
 
@@ -124,7 +124,7 @@ where $Q^{\ast m}_{\rm pool}$ is drawn with replacement from the whole current p
 
 \paragraph{Vanishing mass V-$b_n$.} Fixed weights $w_{n,j}=b_n/J$ on every source, with partial permutation. The rule involves no selection.
 
-\paragraph{Safeguard G.} minP combination of the current-only statistic and R-$\theta_n$ over the same rows (A-Proposition~3.15).
+\paragraph{Safeguard G.} minP combination of the current-only statistic and R-$\theta_n$ over the same rows (A-Proposition~3.16).
 
 \subsection{Calibration: exact for reselection, pointwise for freezing}\label{sec:calib}
 
@@ -190,7 +190,7 @@ Let $(\theta_n)$ be any deterministic sequence with $\theta_n\to0$, and use R-$\
 \end{corollary}
 
 \begin{remark}[Escaping the trade-off]
-The safeguard G is uniformly consistent at the $\sqrt n$ scale (A-Proposition~3.15) and can retain identical sources through its borrowing component, at the cost of testing each component at about level $\alpha/2$. The soft risk weights of Study~A (A-Theorem~3.7, A-Corollary~3.14) give an identical source a weight that does not vanish in probability, because $m\hat D^2/\hat v_c$ has a nondegenerate limit. They also move the fused control by at most $O(n^{-1/2})$ deterministically, so they too escape \cref{cor:tradeoff}. Hard thresholding at $\theta_n$ cannot do both, because accepted sources may be displaced by up to $\theta_n\gg n^{-1/2}$.
+The safeguard G is uniformly consistent at the $\sqrt n$ scale (A-Proposition~3.16) and can retain identical sources through its borrowing component, at the cost of testing each component at about level $\alpha/2$. The soft risk weights of Study~A (A-Theorem~3.6, A-Corollary~3.13) give an identical source a weight that does not vanish in probability, because $m\hat D^2/\hat v_c$ has a nondegenerate limit. They also move the fused control by at most $O(n^{-1/2})$ deterministically, so they too escape \cref{cor:tradeoff}. Hard thresholding at $\theta_n$ cannot do both, because accepted sources may be displaced by up to $\theta_n\gg n^{-1/2}$.
 \end{remark}
 
 \subsection{Frozen shrinking radius: oracle coupling}\label{sec:frozen}
@@ -206,7 +206,7 @@ The coupling bound $e_n$ depends on $\min_{j\notin S_0}d_j$ and is not uniform. 
 \subsection{Vanishing borrowing mass}\label{sec:mass}
 
 \begin{proposition}[Vanishing mass]\label{prop:mass}
-Let $w_n\in\Wset$ be deterministic with $s(w_n)\le b_n$. V-$b_n$ has exact level. In every row, $D(\hat Q_{f,b},Q^m_{c,A_b})\le b_n\max_j D(Q^m_{c,A_b},Q^{\ell_j}_{h_j})\le2\kappa b_n$, so A-Theorem~3.13 gives consistency against every fixed alternative if $b_n\to0$, and uniform consistency over $\{D(Q_c,Q_t)\ge d_n\}$ if $\sqrt n(d_n-4\kappa b_n)\to\infty$.
+Let $w_n\in\Wset$ be deterministic with $s(w_n)\le b_n$. V-$b_n$ has exact level. In every row, $D(\hat Q_{f,b},Q^m_{c,A_b})\le b_n\max_j D(Q^m_{c,A_b},Q^{\ell_j}_{h_j})\le2\kappa b_n$, so A-Theorem~3.12 gives consistency against every fixed alternative if $b_n\to0$, and uniform consistency over $\{D(Q_c,Q_t)\ge d_n\}$ if $\sqrt n(d_n-4\kappa b_n)\to\infty$.
 \end{proposition}
 
 \begin{proposition}[No first-order gain from vanishing mass]\label{prop:nogain}
@@ -235,7 +235,15 @@ where $U^{\rm obs}$ is the realised value of $U$ and $(U^\ast,V^\ast)$ is an ind
 Under $Q_h=Q_c=Q_t$ and fixed ratios, $\limsup_n\P(\Delta>\hat q^{\ast}_{1-\alpha})\le\alpha$ for the partial bootstrap with $B\to\infty$.
 \end{conjecture}
 
-\textit{Evidence.} (i) In the scalar (linear-kernel) version of the two limits, with $(c_1,c_2)\in\{(0.5,1),(0.5,0.5),(1,1),(0.25,1),(1,4)\}$, the limiting rejection probability computed by Monte Carlo ($2000$ draws of $U^{\rm obs}$, $4000$ bootstrap draws each) is $0.033,0.036,0.039,0.029,0.031$, all below $0.05$ (script \texttt{pb\_scalar.py}). (ii) The RBF simulations in \cref{sec:results} report PB-ALL under NullIdent. (iii) \citet{yang2026} report conservative behaviour in their Figure~2. A conservative bootstrap would protect level but lose power exactly where shrinking radii borrow, namely from identical sources.
+\textit{Evidence.} (i) In the scalar (linear-kernel) version of the two limits, Monte Carlo evaluation ($2000$ draws of $U^{\rm obs}$, $4000$ bootstrap draws each; script \texttt{pb\_scalar.py}) gives limiting rejection probabilities below $0.05$ in all five ratio configurations tried:
+\begin{center}\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+$(c_1,c_2)$ & $(0.5,1)$ & $(0.5,0.5)$ & $(1,1)$ & $(0.25,1)$ & $(1,4)$\\
+rejection prob.\ (MC s.e.\ $\approx0.004$) & $0.033$ & $0.036$ & $0.039$ & $0.029$ & $0.031$\\
+\bottomrule
+\end{tabular}
+\end{center} (ii) The RBF simulations in \cref{sec:results} report PB-ALL under NullIdent. (iii) \citet{yang2026} report conservative behaviour in their Figure~2. A conservative bootstrap would protect level but lose power exactly where shrinking radii borrow, namely from identical sources.
 
 \subsection{Choosing the schedule before the study}\label{sec:planning}
 
@@ -256,7 +264,7 @@ Procedure & Level & Consistency (fixed $Q_t\neq Q_c$) & Uniform detection bounda
 \midrule
 CUR & exact & yes & $\sqrt n d_n\to\infty$\\
 F-$\theta$, PB-$\theta$ (fixed $\theta$) & asymptotic (original), $\le2\alpha$ uniformly & no (Remark 3.19) & none\\
-R-$\theta$ (fixed $\theta$) & exact & no (A-Theorem 3.14) & $d_n>2\rho\theta$\\
+R-$\theta$ (fixed $\theta$) & exact & no (A-Theorem 3.15) & $d_n>2\rho\theta$\\
 R-$\theta_n$, $\theta_n\to0$ & exact & yes, any rate & $\asymp\theta_n$ (sharp)\\
 F-$\theta_n$, $n\theta_n^2\to\infty$ & pointwise asymptotic; $\le2\alpha$ uniformly & yes (pointwise) & $\asymp\theta_n$ (sharp)\\
 PB-$\theta_n$ & open (\cref{conj:pb}) & not established & --\\
@@ -277,7 +285,7 @@ G (minP) & exact & yes & $\sqrt nd_n\to\infty$\\
 \appendix
 \section{Proofs}\label{app:proofs}
 
-Proofs of A-Theorems 3.2 and 3.13 and A-Proposition~3.15 are in Study~A, Appendix~A. We repeat the two facts that are used repeatedly. (F1) For an i.i.d.\ sample of size $M$ from $R$, $\E\norm{\hxi-\xi_R}^2=v_R/M\le\kappa^2/M$. (F2) For a uniform $m$-subset $A$ of fixed pooled values, $\E_A\norm{\hxi_{c,A}-\hxi_{t,A}}^2\le M_{m,n}$, and since $\hxi_{c,A}-\hxi_{\rm pool}=\eta(\hxi_{c,A}-\hxi_{t,A})$, also $\E_A\norm{\hxi_{c,A}-\hxi_{\rm pool}}^2\le\eta^2M_{m,n}$.
+Proofs of A-Theorems 3.2 and 3.13 and A-Proposition~3.16 are in Study~A, Appendix~A. We repeat the two facts that are used repeatedly. (F1) For an i.i.d.\ sample of size $M$ from $R$, $\E\norm{\hxi-\xi_R}^2=v_R/M\le\kappa^2/M$. (F2) For a uniform $m$-subset $A$ of fixed pooled values, $\E_A\norm{\hxi_{c,A}-\hxi_{t,A}}^2\le M_{m,n}$, and since $\hxi_{c,A}-\hxi_{\rm pool}=\eta(\hxi_{c,A}-\hxi_{t,A})$, also $\E_A\norm{\hxi_{c,A}-\hxi_{\rm pool}}^2\le\eta^2M_{m,n}$.
 
 \begin{proof}[Proof of \cref{lem:q}]
 As in A-Lemma~3.10. For the pooled variant, $\E^\ast\norm{\hxi^\ast_{\rm pool}-\hxi_{\rm pool}}^2\le\kappa^2/m$ by (F1) applied to the bootstrap distribution with $M=m$ draws.
@@ -296,11 +304,11 @@ A union bound over $j$ of the two cases of \cref{thm:fusion}.
 \end{proof}
 
 \begin{proof}[Proof of \cref{thm:Rfixed}]
-In every row each accepted source satisfies $D(Q^m_{c,A_b},Q^{\ell_j}_{h_j})<\theta_n-q_j\le\theta_n$, so with sample-size pooling $D(\hat Q_{f,b},Q^m_{c,A_b})\le\rho\theta_n$ (A-Lemma~3.9). Apply A-Theorem~3.13 with $\delta=\rho\theta_n$. Its bound depends on the distributions only through $d$ and $\kappa$, which gives the uniform statement.
+In every row each accepted source satisfies $D(Q^m_{c,A_b},Q^{\ell_j}_{h_j})<\theta_n-q_j\le\theta_n$, so with sample-size pooling $D(\hat Q_{f,b},Q^m_{c,A_b})\le\rho\theta_n$ (A-Lemma~3.9). Apply A-Theorem~3.12 with $\delta=\rho\theta_n$. Its bound depends on the distributions only through $d$ and $\kappa$, which gives the uniform statement.
 \end{proof}
 
 \begin{proof}[Proof of \cref{thm:localblind}]
-Write $\theta=\theta_n$, $\xi_h=\xi_{Q_{h,n}}$, $\xi_t=\xi_{Q_{t,n}}=\gamma\xi_c+(1-\gamma)\xi_h$, so $\norm{\xi_t-\xi_c}=(1-\gamma)c\theta$ and $\sqrt n\norm{\xi_t-\xi_c}\to\infty$. The current-only test and G are consistent along this sequence by A-Theorem~3.13 with $\delta=0$ (and A-Proposition~3.15 for G), because the bound depends only on $d_n$ and $\sqrt nd_n\to\infty$.
+Write $\theta=\theta_n$, $\xi_h=\xi_{Q_{h,n}}$, $\xi_t=\xi_{Q_{t,n}}=\gamma\xi_c+(1-\gamma)\xi_h$, so $\norm{\xi_t-\xi_c}=(1-\gamma)c\theta$ and $\sqrt n\norm{\xi_t-\xi_c}\to\infty$. The current-only test and G are consistent along this sequence by A-Theorem~3.12 with $\delta=0$ (and A-Proposition~3.16 for G), because the bound depends only on $d_n$ and $\sqrt nd_n\to\infty$.
 
 \emph{Observed row.} $\hat D\le c\theta+\epsilon$ with $\E\epsilon^2\le s=O(n^{-1})$, and $q=O_P(n^{-1/2})$. Since $\sqrt n\theta\to\infty$, $\P(\hat D+q<\theta)\ge1-\P(\epsilon+q\ge(1-c)\theta)\to1$: the source is accepted. Then $\hxi_f-\hxi_t=\gamma e_c+(1-\gamma)e_h-e_t$, where $e_\cdot$ are the centred empirical errors, because $\gamma\xi_c+(1-\gamma)\xi_h-\xi_t=0$. So $\E S_0\le\kappa^2(\gamma^2/m+(1-\gamma)^2/\ell+1/n)=O(n^{-1})$ and $nS_0=O_P(1)$.
 
@@ -320,7 +328,7 @@ Use the same permutations for both tests. On $\{\hat S=S_0\}$ the frozen test an
 \end{proof}
 
 \begin{proof}[Proof of \cref{prop:mass}]
-The weights are fixed, so A-Theorem~3.2 applies with a constant rule. In every row $\hxi_{f,b}-\hxi_{c,A_b}=\sum_jw_{n,j}(\hxi_j-\hxi_{c,A_b})$, whose norm is at most $b_n\max_j\norm{\hxi_j-\hxi_{c,A_b}}\le2\kappa b_n$. Then apply A-Theorem~3.13 with $\delta=2\kappa b_n$.
+The weights are fixed, so A-Theorem~3.2 applies with a constant rule. In every row $\hxi_{f,b}-\hxi_{c,A_b}=\sum_jw_{n,j}(\hxi_j-\hxi_{c,A_b})$, whose norm is at most $b_n\max_j\norm{\hxi_j-\hxi_{c,A_b}}\le2\kappa b_n$. Then apply A-Theorem~3.12 with $\delta=2\kappa b_n$.
 \end{proof}
 
 \begin{proof}[Proof of \cref{prop:nogain}]

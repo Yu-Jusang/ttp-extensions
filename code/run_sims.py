@@ -156,13 +156,14 @@ def suite_B_local(reps0, reps1, seed):
 
 # ------------------------------------------------------------------ reproduction
 def task_repro(args):
-    key, dmu, seed = args
+    key, dmu, seed = args[:3]
+    bw = args[3] if len(args) > 3 else None
     rng = np.random.default_rng(seed)
     m, n, ell = 50, 100, 100
     xt = rng.normal(0, 1, n)
     xc = rng.normal(dmu, 1, m)
     xh = rng.normal(dmu + 0.2, 1, ell)
-    sig = ttp.median_heuristic_sigma(np.concatenate([xc, xt, xh]))
+    sig = ttp.median_heuristic_sigma(np.concatenate([xc, xt, xh])) if bw is None else bw
     prob = ttp.Problem(xc, xt, [xh], sig)
     cfg = dict(B=999, Bf=999, Bpb=999, alpha=ALPHA, alpha_f=ALPHA, thetas={'fix': 0.4},
                masses={}, pb_names=['fix'], guard_names=['fix'], pb_always=False)
@@ -180,8 +181,20 @@ def suite_repro(reps0, reps1, seed):
     return task_repro, tasks
 
 
+def suite_repro_bw(reps0, reps1, seed):
+    """fixed bandwidths s in {0.5,1,1.5} read as k=exp(-d^2/s^2), i.e. sigma=s/sqrt(2)."""
+    tasks = []
+    for si, s in enumerate([0.5, 1.0, 1.5]):
+        for di, d in enumerate([-0.4, 0.0, 0.4]):
+            R = reps0 if d == 0 else reps1
+            for r in range(R):
+                ss = np.random.SeedSequence([seed, 500 + si, di, r]).generate_state(1)[0]
+                tasks.append(((f'{d:+.1f}', f'bw{s}', 0), d, int(ss), s / np.sqrt(2)))
+    return task_repro, tasks
+
+
 SUITES = {'A_main': suite_A_main, 'A_n': suite_A_n, 'B_n': suite_B_n,
-          'B_local': suite_B_local, 'repro': suite_repro}
+          'B_local': suite_B_local, 'repro': suite_repro, 'repro_bw': suite_repro_bw}
 
 
 def main():

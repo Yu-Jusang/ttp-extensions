@@ -1,0 +1,31 @@
+\subsection{Design}\label{sec:design}
+
+All experiments use the Gaussian kernel with fixed bandwidth $\sigma=1$ ($\kappa=1$), $\alpha=0.05$, $B=199$ random permutations ($L=200$, so $k_\alpha=10$), $B_f=199$ fusion bootstrap draws, and $B=199$ partial-bootstrap draws for SW-PB. A fixed bandwidth keeps the radius $\theta$ meaningful across data sets and makes every rule label-invariant; the median heuristic is used only in the reproduction. Normal distributions are written $N(\text{mean},\text{sd}^2)$, and the current control is always $Q_c=N(0,1)$.
+
+\paragraph{Reproduction of the original Table~2 (single source).} $Q_t=N(0,1)$, $Q_c=N(\mu_c-\mu_t,1)$ with $\mu_c-\mu_t\in\{-0.4,0,0.4\}$, $Q_h=N(\mu_c+0.2,1)$, $m=50$, $n=\ell=100$, $\theta=0.4$, $\alpha_f=0.05$, $B=B_f=999$, median-heuristic bandwidth on the pooled data ($\sigma^2=$ median squared distance), $1000$ data sets per row. This repeats the original design as closely as the paper allows; \cref{sec:repro} discusses the remaining differences.
+
+\paragraph{Main factorial experiment (A\_main).} $J=3$ sources, $m=40$, $n=80$, $\ell_j=80$, $\theta_j=0.5$, Bonferroni fusion levels $\alpha_{f,j}=0.05/3$. Source scenarios:
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Scenario & $(Q_{h_1},Q_{h_2},Q_{h_3})$\\
+\midrule
+Aligned & $N(0,1),\ N(0,1),\ N(0,1)$ \quad (all identical to $Q_c$)\\
+Partial & $N(0,1),\ N(0,1),\ N(1,1)$ \quad (some identical)\\
+Shifted & $N(0.5,1),\ N(0.7,1),\ N(1,1)$ \quad (all different, same direction)\\
+Opposite & $N(0.6,1),\ N(-0.6,1),\ N(1.5,1)$ \quad (opposite directions: mean shifts cancel)\\
+Mixed & $N(0,1),\ N(0,1.5^2),\ N(0.8,1)$ \quad (identical, scale-shifted, location-shifted)\\
+\bottomrule
+\end{tabular}
+\end{center}
+For reference, $D(N(0,1),N(\mu,1))=\{2(1-e^{-\mu^2/6})/\sqrt3\}^{1/2}$ for $\sigma=1$, which is $0.217,0.300,0.421$ for $\mu=0.5,0.7,1$. Treatments: Null $Q_t=Q_c$; Mean$+$ $N(0.5,1)$ (same direction as the positive source shifts); Mean$-$ $N(-0.5,1)$ (opposite direction); Scale $N(0,1.5^2)$; Shape $\frac12N(-0.8,0.6^2)+\frac12N(0.8,0.6^2)$ (same mean and variance as $Q_c$, bimodal). There are $2000$ data sets per null setting and $1000$ per alternative.
+
+\paragraph{Sample-size experiment (A\_n).} $m\in\{20,40,80,160\}$, $n=2m$, $\ell_j=2m$, $J=3$, $\theta=0.5$. Settings: AlignedNull (all sources $N(0,1)$, $Q_t=Q_c$); ShiftedNull (all sources $N(0.6,1)$, $D=0.259<\theta$); AlignedMean (aligned sources, $Q_t=N(0.4,1)$); and BlindSpot (all sources $N(0.6,1)$, $Q_t=\frac17N(0,1)+\frac67N(0.6,1)$). Here $\frac17=m/(m+\ell_{\rm tot})$, so pooling all three sources reproduces $Q_t$ exactly (\cref{thm:blind}).
+
+\paragraph{Procedures.} Codes as in \cref{tab:guarantees}: CUR; ALL (sample-size pooling of all sources, partial permutation); WU-R and WU-F (unbiased-risk weights, grid step $0.05$, $s\le0.9$, $1330$ grid points, reselected or frozen); WC-R (conservative objective of the earlier draft, reselected); SW-R, SW-F, SW-PB (sourcewise fusion with reselection, frozen with partial permutation, frozen with partial bootstrap); SWu-R (SW-R without Bonferroni, $\alpha_{f,j}=0.05$); SW-S and WU-S (sample splitting with half of the controls as pilot); G-WU and G-SW (minP safeguard).
+
+\paragraph{Common random numbers.} Within a data set all procedures share the permutations $A_1,\dots,A_B$ and the bootstrap weight matrices. Differences between procedures are therefore paired, and we report paired 95\% intervals for power differences.
+
+\subsection{Monte Carlo protocol}\label{sec:protocol}
+
+Seeds are derived with NumPy's \texttt{SeedSequence} from the tuple \texttt{(seed, setting, level, replicate)}, so each data set can be regenerated on its own. Exploratory runs use base seed $20261018$. Confirmation runs repeat the complete designs with base seed $20261019$ ($2000$/$1000$ replicates for A\_main, $1000$/$500$ for A\_n). They were specified after the exploratory A\_main results had been seen; because whole designs are repeated rather than selected cells, they check the stability of every reported pattern (\cref{sec:confirm}). The exploratory results are reported unchanged. Rejection rates carry pointwise Wilson 95\% intervals; in tables, a bold null rate with $\uparrow$ marks an interval lying entirely above $0.05$. With $2000$ replicates, a rate of $0.05$ has Monte Carlo standard error $0.0049$. Across $25$ null cells and $13$ procedures, a few marginal exceedances are expected by chance, so we interpret only systematic patterns. Code, raw arrays and environment are described in \cref{app:repro}.
