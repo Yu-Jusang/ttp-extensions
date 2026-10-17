@@ -1,0 +1,337 @@
+\documentclass[11pt,a4paper]{article}
+\input{preamble.tex}
+\hypersetup{
+  pdftitle={Shrinking Equivalence Radii and Vanishing Borrowing in Distributional Test-then-pool},
+  pdfauthor={Working paper (prepared with AI assistance)},
+  pdfsubject={Statistical methodology: historical controls, kernel two-sample testing, local power},
+  pdfkeywords={test-then-pool, equivalence radius, shrinking tolerance, local alternatives, maximum mean discrepancy, permutation test, post-selection inference}
+}
+\newcommand{\shorttitle}{Shrinking radii in distributional test-then-pool}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textsc{\shorttitle}}
+\fancyhead[R]{\small\nouppercase{\leftmark}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\begin{document}
+
+\begin{titlepage}
+\vspace*{18mm}
+{\small\textsc{Working paper \quad$\cdot$\quad Study B of two follow-up studies}}\par
+\vspace{6mm}
+\rule{\textwidth}{0.6pt}\par\vspace{5mm}
+{\LARGE\bfseries Shrinking Equivalence Radii and Vanishing Borrowing in Distributional Test-then-pool:\\[2mm] Consistency, Selection Stability and the Price in Local Power\par}
+\vspace{5mm}\rule{\textwidth}{0.6pt}\par
+\vspace{10mm}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\textbf{Builds on} & L.~Yang, X.~Liu and R.~J.~Evans (2026), \emph{Data Fusion with Distributional Equivalence Test-then-pool}, arXiv:2603.11867v2, Remark~3.19. \\[1mm]
+\textbf{Question} & Can a radius $\theta_n\to0$ or a borrowing mass $b_n\to0$, fixed before seeing data, remove the power blind spot of fixed-radius equivalence test-then-pool, and at what cost? \\[1mm]
+\textbf{Content} & Selection asymptotics with shrinking radii; exact and asymptotic calibration; a rate-sharp local blind spot; vanishing borrowing; partial-bootstrap degeneracy; Monte Carlo study with sample-size-dependent populations and an independent-seed confirmation. \\[1mm]
+\textbf{Status} & Research draft, 18 October 2026. Proofs are the author's own and have not been independently refereed. Prepared with AI assistance (Claude); ideas from an earlier AI draft (GPT, 17 October 2026) are credited where reused. \\[1mm]
+\textbf{Companion} & Study A: \emph{Multi-source distributional test-then-pool}. \\[1mm]
+\textbf{Materials} & Code, seeds, raw results: \url{https://github.com/Yu-Jusang/ttp-extensions}
+\end{tabularx}
+\vfill
+\begin{abstract}
+\noindent With a fixed equivalence radius $\theta$, the distributional test-then-pool (TTP) procedure of \citet{yang2026} keeps borrowing a historical control that differs from the current control by up to $\theta$, and it is not consistent against alternatives in which the treatment effect points in the direction of the historical shift (their Remark~3.19). We analyse prespecified schedules $\theta_n=\theta_0(n/n_0)^{-a}$ and borrowing masses $b_n\to0$. For the fusion stage we prove that an identical source is retained with probability tending to one when $n\theta_n^2\to\infty$, and is eventually discarded when $\sqrt n\,\theta_n\to0$; a fixed shifted source is discarded whenever $\theta_n\to0$; we also give explicit selection-error bounds. Calibrated by full reselection, the final test has finite-sample level for every schedule, and it is consistent against every fixed alternative as soon as $\theta_n\to0$. Freezing the selection, as in the original procedure, gives pointwise asymptotic validity and consistency by coupling with an oracle, but not uniformly. We prove that the price of shrinking radii is a local blind spot of exact order $\theta_n$: there are alternatives with $D(Q_c,Q_t)=c\,\theta_n\gg n^{-1/2}$ for which the power tends to zero although the current-only test has power tending to one. No radius schedule both retains identical sources and is uniformly consistent at the $\sqrt n$ scale. A minP safeguard, or the soft risk weights of the companion study, avoids this trade-off. Vanishing borrowing mass restores consistency but gives no first-order local power gain from identical sources. The original partial bootstrap degenerates at $Q_h=Q_c$; a Gaussian-limit calculation and simulations suggest that it is conservative there, which we state as a conjecture. Simulations with $n$ up to $800$ confirm these patterns and show their finite-sample sizes.
+\end{abstract}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+%======================================================================
+\section{Introduction}\label{sec:intro}
+
+Equivalence test-then-pool \citep{li2020,yang2026} borrows a historical control sample only after an equivalence test has shown it to be within distance $\theta$ of the current control. Equivalence is not identity. A merged source can differ from the current control by almost $\theta$, and this displacement can cancel a real treatment effect. \citet[Theorems 3.6, 3.9, Corollary 3.18]{yang2026} show that their procedure is consistent only when the treatment contrast is large relative to the projected historical shift. In their Remark~3.19 they suggest letting the radius depend on the sample size, $\theta=\theta_n=o(1)$, and leave the analysis open. This paper takes up that analysis.
+
+We study prespecified, deterministic schedules,
+\[
+\theta_n=\theta_0\Big(\frac{n}{n_0}\Big)^{-a},\qquad b_n=b_0\Big(\frac{n}{n_0}\Big)^{-b},
+\]
+fixed before any outcome is seen. Data-driven tuning of $\theta$ is a different problem and would need its own selection correction \citep[Section~3.5 of][]{yang2026}. We distinguish three design choices:
+\begin{enumerate}[leftmargin=1.4em,itemsep=1pt]
+\item \emph{what shrinks}: the tolerated discrepancy of a borrowed source ($\theta_n$) or the total weight given to historical data ($b_n$);
+\item \emph{how the final test is calibrated}: by freezing the observed fusion decision (original architecture) or by re-running fusion in every permutation (full reselection, as in the companion Study~A);
+\item \emph{which causal-stage test is used}: partial permutation or the original partial bootstrap.
+\end{enumerate}
+
+\paragraph{Answers in brief.}
+\begin{itemize}[leftmargin=1.4em,itemsep=1pt]
+\item \emph{Consistency against all fixed alternatives.} With full reselection it holds whenever $\theta_n\to0$, at any rate (\cref{thm:Rfixed}). With frozen selection it holds pointwise under $\theta_n\to0$ and $n\theta_n^2\to\infty$ (\cref{thm:frozen}).
+\item \emph{Keeping an identical source.} This needs $\theta_n$ to shrink more slowly than the sampling error: $n\theta_n^2\to\infty$ suffices, and $\sqrt n\,\theta_n\to0$ loses the source (\cref{thm:fusion}). In the power family, $0<a<1/2$ suffices, and $a>1/2$ discards identical sources.
+\item \emph{Too fast or too slow.} Too fast forfeits borrowing. Too slow leaves a blind spot that persists over a long range of $n$. Even the ideal rate leaves a \emph{local} blind spot of size $\asymp\theta_n$ (\cref{thm:localblind}), so a radius schedule cannot have both properties (\cref{cor:tradeoff}).
+\item \emph{Constants.} We give a planning rule for $(\theta_0,n_0,a)$ in \cref{sec:planning}; it is not an optimality result.
+\item \emph{Local and sample-size-dependent discrepancies.} A source at distance $d_{h,n}$ is kept when $\sqrt n(\theta_n-d_{h,n})\to\infty$ and dropped when $\sqrt n(d_{h,n}-\theta_n)\to\infty$; near the boundary the selection is random, and frozen calibration can be distorted.
+\end{itemize}
+
+We separate pointwise results (fixed distributions) from uniform ones (distributions that may change with $n$), and partial-permutation results from partial-bootstrap ones, whose degenerate limits require separate treatment (\cref{sec:pb}). We never call a rate optimal: all rate statements are sufficient conditions, matching counterexamples, or experimental choices.
+
+%======================================================================
+\section{Background}\label{sec:background}
+
+\subsection{Setting and notation}\label{sec:setting}
+
+The setting is that of \citet{yang2026}. We observe independent samples $Q_c^m$ (current control), $Q_t^n$ (treatment) and $Q_{h_j}^{\ell_j}$ ($j=1,\dots,J$; $J=1$ in the original), with fixed ratios $m/n\to c_1>0$ and $\ell_j/n\to c_{2j}>0$ (their Assumption~3.2), and test $H_0:Q_c=Q_t$. As in the original, $\gamma=m/(m+\ell)$ and $\eta=n/(m+n)$; we also write $\lambda=m/N=1-\eta$, $N=m+n$.
+
+\begin{assumption}[Kernel]\label{ass:kernel}
+$k$ is a bounded, measurable, characteristic kernel with separable RKHS $\Hk$ and $\kappa^2=\sup_xk(x,x)<\infty$.
+\end{assumption}
+
+$\xi_R$ is the kernel mean embedding of $R$, and $\hxi$ denotes an empirical embedding. \textbf{$D(P,Q)=\norm{\xi_P-\xi_Q}$ is the MMD, not its square}; test statistics are squared MMDs. For a set $S$ of sources pooled by sample size,
+\[
+Q_{f,S}^{m+\ell_S}=\frac{m}{m+\ell_S}Q_c^m+\sum_{j\in S}\frac{\ell_j}{m+\ell_S}Q_{h_j}^{\ell_j},\qquad \ell_S=\sum_{j\in S}\ell_j .
+\]
+Constants: $v_{m,n}=\kappa^2(1/m+1/n)$, $M_{m,n}=\kappa^2N^2/\{mn(N-1)\}$, $L=B+1$ (permutations including the observed allocation), and $k_\alpha=\lfloor\alpha L\rfloor$.
+
+\subsection{The original procedure and its open question}\label{sec:orig}
+
+\citet{yang2026} test $H_0^f:D(Q_c,Q_h)\ge\theta$ with statistic $\theta-D(Q_c^m,Q_h^\ell)$ and a bootstrap quantile $q$ of $D(Q_c^m,Q_c)+D(Q_h^\ell,Q_h)$ \citep[Section 4.2]{liugandy2026}, merging when $D(Q_c^m,Q_h^\ell)+q<\theta$ (their Section~3.1, Theorem~3.1). After merging, they use either the partial bootstrap statistic $\Delta=\sqrt n\{D^2(Q_f^{m+\ell},Q_t^n)-D^2(Q_f^{m+\ell},Q_c^m)\}$ (Algorithm~2), which is asymptotically valid for $Q_h\neq Q_c$ (Theorem~3.5), or the partial permutation statistic $D^2(Q_f^{m+\ell},Q_t^n)$ with only current labels permuted (Theorem~3.8). Write $A=(1-\gamma)(\xi_h-\xi_c)$ and $\Gamma=\xi_t-\xi_c$. The consistency arguments in the original proofs (Appendices~B.4 and B.6) compare population limits of the observed and resampled statistics, and the resulting gaps are
+\[
+g_{\rm PB}=\norm{\Gamma}^2-2\ip{A}{\Gamma},
+\qquad
+g_{\rm PP}=(1-r)\big\{(1+r)\norm{\Gamma}^2-2\ip{A}{\Gamma}\big\},\quad r=(1-\gamma)\eta .
+\]
+The test is consistent when the gap is positive. The partial-bootstrap condition is exactly the printed $2(1-\gamma)D(Q_h,Q_c)\cos\beta<D(Q_c,Q_t)$ of Theorem~3.6. For partial permutation we re-derived the gap from the limits $\norm{A-\Gamma}^2$ (observed) and $\norm{A-r\Gamma}^2$ (permuted, with the pooled current mixture $\lambda Q_c+\eta Q_t$). This gives $2(1-\gamma)D(Q_h,Q_c)\cos\beta<\{1+(1-\gamma)\eta\}D(Q_c,Q_t)$, which differs in form from the condition printed in Theorem~3.9; we could not reconcile the two parameterisations, and nothing below depends on the difference. Both gaps can be nonpositive when $\xi_t-\xi_c$ points along $\xi_h-\xi_c$, and with a fixed $\theta$ such a source is merged with probability tending to one. Remark~3.19 therefore records a lack of consistency against all alternatives.
+
+The companion Study~A reviews two further steps of the original argument: conditioning the permutation test on the fusion event (their Theorem~A.4) and the boundary limit of the fusion test. It shows that freezing a selection is controlled in general only by $|\mathcal D|\alpha$, and that full reselection is exact. We reuse these results and refer to them as A-Theorem~3.2 (exact level), A-Theorem~3.13 (Type-II bound) and A-Proposition~3.15 (minP safeguard). Their statements are repeated where needed.
+
+\subsection{Related work}\label{sec:related}
+
+Shrinking radii are pretest thresholds that vanish with $n$, in the tradition of Hodges-type superefficiency. Post-model-selection estimators with consistent selection behave like the oracle pointwise but not uniformly over parameter sequences, and their finite-sample distributions cannot be estimated uniformly consistently \citep{leeb2005}. Our frozen-selection results are a testing analogue of that phenomenon. \citet{yang2023elastic} analyse a test-based integration estimator under local alternatives and choose the pretest threshold adaptively by minimising mean squared error. \citet{zhu2025} achieve exact Type-I control under selective borrowing by randomization inference. Local and minimax power of permutation and MMD tests is studied by \citet{kim2022}, and the $n^{-1/2}$ minimax rate for embedding estimation by \citet{tolstikhin2017}. Optimal equivalence tests under local asymptotics are treated by \citet{romano2005}. Bayesian dynamic borrowing \citep{ibrahimchen2000,hobbs2011,schmidli2014,kaizer2018,viele2014} controls borrowing through prior discounting rather than prespecified schedules.
+
+%======================================================================
+\section{Method}\label{sec:method}
+
+\subsection{Procedures}\label{sec:procs}
+
+Fix a schedule $(\theta_n)$, fusion levels $\alpha_{f,j}$ (Bonferroni $\alpha_f/J$ by default), $B$ and $B_f$.
+
+\paragraph{Frozen radius test F-$\theta_n$ (original architecture).} For each $j$, compute $q_j$ by Efron's bootstrap from the observed current control and from source $j$, accept $j$ if $D(Q_c^m,Q_{h_j}^{\ell_j})+q_j<\theta_n$, pool the accepted set $\hat S$ by sample size, and run partial permutation with $\hat S$ held fixed. If $\hat S=\emptyset$ this is the current-only permutation test. PB-$\theta_n$ uses the original partial bootstrap instead of partial permutation.
+
+\paragraph{Reselected radius test R-$\theta_n$.} In every permutation row $b$ (allocation $A_b$), recompute
+\[
+\hat S_b=\{j:\ D(Q^m_{c,A_b},Q^{\ell_j}_{h_j})+q_j<\theta_n\},\qquad S_b=D^2\big(Q^{m+\ell_{\hat S_b}}_{f,\hat S_b}(A_b),\,Q^n_{t,A_b}\big),
+\]
+and use $p=L^{-1}\#\{b:S_b\ge S_0\}$. To keep the calibration exact and cheap we use a \emph{label-invariant} critical value: $q_j$ is the $\lceil(1-\alpha_{f,j})B_f\rceil$-th order statistic of
+\[
+D(Q^{\ast m}_{\rm pool},Q^N_{\rm pool})+D(Q^{\ast\ell_j}_{h_j},Q^{\ell_j}_{h_j}),
+\]
+where $Q^{\ast m}_{\rm pool}$ is drawn with replacement from the whole current pool. It is computed once and used in all rows. Under $H_0$ this targets the same law as the original bootstrap, since the pool is i.i.d.\ from $Q_c$. Under $H_1$ it resamples from the pooled current mixture, which changes the fusion error rates but not the final level.
+
+\paragraph{Vanishing mass V-$b_n$.} Fixed weights $w_{n,j}=b_n/J$ on every source, with partial permutation. The rule involves no selection.
+
+\paragraph{Safeguard G.} minP combination of the current-only statistic and R-$\theta_n$ over the same rows (A-Proposition~3.15).
+
+\subsection{Calibration: exact for reselection, pointwise for freezing}\label{sec:calib}
+
+\begin{proposition}[Exact level for every schedule]\label{prop:Rlevel}
+For any deterministic sequence $(\theta_n)$, any $J$, any historical distributions and any $B$, R-$\theta_n$, V-$b_n$ and G satisfy $\P_{H_0}(\text{reject})\le\lfloor\alpha L\rfloor/L$.
+\end{proposition}
+
+The label-invariant $q_j$ and the historical bootstrap weights are functions of the unordered pool and of independent auxiliary randomness, so the row statistic is a symmetric function of the control values (A-Assumption~3.1). The result then follows from A-Theorem~3.2.
+
+For frozen selection, A-Proposition~3.3 gives the uniform bound $\P_{H_0}(\text{reject})\le\min(1,2^J\alpha)$, which holds for every $n$ and every sequence of distributions. Better bounds need the selection to stabilise.
+
+\subsection{Fusion with a shrinking radius}\label{sec:fusion}
+
+\begin{lemma}[Order of the fusion critical value]\label{lem:q}
+For either bootstrap variant, with $k_f=\lceil(1-\alpha_{f,j})B_f\rceil$, $\E q_j^2\le\bar q^2_{n,j}:=2\kappa^2(1/m+1/\ell_j)B_f/(B_f-k_f+1)$.
+\end{lemma}
+
+\begin{theorem}[Selection with a shrinking radius]\label{thm:fusion}
+Let $\hat D_j=D(Q^m_c,Q^{\ell_j}_{h_j})$, $d_j=D(Q_c,Q_{h_j})$ and $s_j=\kappa^2(1/m+1/\ell_j)$. For every $n$, every row (with $Q^m_c$ replaced by the row's control sample in the reselected test) and all distributions:
+\begin{enumerate}[label=(\alph*),itemsep=1pt]
+\item if $d_j<\theta_n$, then $\P(j\notin\hat S)\le4(s_j+\bar q^2_{n,j})/(\theta_n-d_j)^2$;
+\item if $d_j>\theta_n$, then $\P(j\in\hat S)\le s_j/(d_j-\theta_n)^2$.
+\end{enumerate}
+Consequently, for fixed distributions with $\theta_n\to0$: a source with $d_j>0$ is discarded with probability tending to one; an identical source ($d_j=0$) is retained with probability tending to one if $n\theta_n^2\to\infty$; and if $\sqrt n\,\theta_n\to0$ and $v_{Q_c}>0$, an identical source is discarded with probability tending to one. For sample-size-dependent discrepancies $d_j=d_{j,n}$, the source is retained with probability tending to one if $\sqrt n(\theta_n-d_{j,n})\to\infty$ and discarded if $\sqrt n(d_{j,n}-\theta_n)\to\infty$, uniformly over all distributions satisfying the respective condition.
+\end{theorem}
+
+\begin{corollary}[Stabilisation to the oracle set]\label{cor:oracle}
+Let $S_0=\{j:Q_{h_j}=Q_c\}$, $\theta_n\to0$ and $n\theta_n^2\to\infty$. For fixed distributions, $\P(\hat S\neq S_0)\le e_n$ with
+\[
+e_n=\sum_{j\notin S_0}\frac{s_j}{(d_j-\theta_n)^2}+\sum_{j\in S_0}\frac{4(s_j+\bar q^2_{n,j})}{\theta_n^2}\to0
+\]
+for all $n$ large enough that $\theta_n<\min_{j\notin S_0}d_j$.
+\end{corollary}
+
+\begin{remark}[The boundary rate $a=1/2$]
+If $\sqrt n\,\theta_n\to c\in(0,\infty)$ and $Q_{h_j}=Q_c$, then $\sqrt n\hat D_j$ converges to the norm of a nondegenerate Gaussian element and $\sqrt n\,q_j$ to a random limit, so the acceptance probability converges, under a bootstrap-consistency condition, to a constant strictly between $0$ and $1$. We do not prove this limit; the experiments show intermediate acceptance rates for $a=0.45$ at moderate $n$.
+\end{remark}
+
+\subsection{Reselected shrinking radius: consistency and its price}\label{sec:Rpower}
+
+Let $\rho=\ell_{\rm tot}/(m+\ell_{\rm tot})$ with $\ell_{\rm tot}=\sum_j\ell_j$.
+
+\begin{theorem}[R-$\theta_n$: Type-II bound and consistency]\label{thm:Rfixed}
+For every $n$ and all distributions with $d=D(Q_c,Q_t)>2\rho\theta_n$, if $k_\alpha\ge1$,
+\[
+\P(\text{R-}\theta_n\text{ does not reject})\le\frac{4(v_{m,n}+BM_{m,n}/k_\alpha)}{(d-2\rho\theta_n)^2}.
+\]
+Hence $\theta_n\to0$ (any rate) gives consistency against every fixed alternative, and uniform consistency over $\{D(Q_c,Q_t)\ge d_n\}$, for all historical distributions, whenever $\sqrt n(d_n-2\rho\theta_n)\to\infty$.
+\end{theorem}
+
+The detection boundary in \cref{thm:Rfixed} is of order $\theta_n$, larger than the current-only boundary $n^{-1/2}$ when $\sqrt n\theta_n\to\infty$. The next theorem shows that this is not a weakness of the proof.
+
+\begin{theorem}[Local blind spot of exact order $\theta_n$]\label{thm:localblind}
+Let $J=1$, fixed ratios, $B$ and $B_f$ fixed with $k_\alpha\ge1$, $\theta_n\to0$ and $\sqrt n\theta_n\to\infty$. Fix $c\in(0,1)$ and let $Q_{h,n}$ be any sequence with $D(Q_c,Q_{h,n})=c\,\theta_n$. Define the local alternative
+\[
+Q_{t,n}=\gamma Q_c+(1-\gamma)Q_{h,n},\qquad D(Q_c,Q_{t,n})=(1-\gamma)c\,\theta_n .
+\]
+Then $\sqrt n\,D(Q_c,Q_{t,n})\to\infty$ and the current-only test and G have power tending to one, but the power of R-$\theta_n$ and of F-$\theta_n$ tends to zero.
+\end{theorem}
+
+\begin{corollary}[No radius schedule has both properties]\label{cor:tradeoff}
+Let $(\theta_n)$ be any deterministic sequence with $\theta_n\to0$, and use R-$\theta_n$ or F-$\theta_n$ with $J=1$ and fixed $B,B_f$. If identical sources are retained with probability bounded away from zero along a subsequence, then $\sqrt n\,\theta_n\not\to0$ along it (\cref{thm:fusion}). If $\sqrt n\,\theta_n\to\infty$, \cref{thm:localblind} gives alternatives with $\sqrt n\,D(Q_c,Q_{t,n})\to\infty$ and power tending to zero. So a shrinking radius cannot both retain identical sources with probability tending to one and be uniformly consistent over $\{\sqrt n\,D(Q_c,Q_t)\to\infty\}$.
+\end{corollary}
+
+\begin{remark}[Escaping the trade-off]
+The safeguard G is uniformly consistent at the $\sqrt n$ scale (A-Proposition~3.15) and can retain identical sources through its borrowing component, at the cost of testing each component at about level $\alpha/2$. The soft risk weights of Study~A (A-Theorem~3.7, A-Corollary~3.14) give an identical source a weight that does not vanish in probability, because $m\hat D^2/\hat v_c$ has a nondegenerate limit. They also move the fused control by at most $O(n^{-1/2})$ deterministically, so they too escape \cref{cor:tradeoff}. Hard thresholding at $\theta_n$ cannot do both, because accepted sources may be displaced by up to $\theta_n\gg n^{-1/2}$.
+\end{remark}
+
+\subsection{Frozen shrinking radius: oracle coupling}\label{sec:frozen}
+
+The following result and its coupling proof are adapted from the earlier AI draft (its Theorem~3.8). We restate it with explicit constants and add the non-uniformity discussion.
+
+\begin{theorem}[Frozen selection: pointwise validity and consistency]\label{thm:frozen}
+Fix the distributions, $J$, the ratios, $B$ with $k_\alpha\ge1$, and $B_f$. Let $\theta_n\to0$ with $n\theta_n^2\to\infty$, and let $\phi^{\rm or}$ be the fixed-rule partial-permutation test that pools exactly $S_0=\{j:Q_{h_j}=Q_c\}$, computed with the same permutations. Then $|\P(\text{F-}\theta_n\text{ rejects})-\P(\phi^{\rm or}=1)|\le e_n\to0$. Hence $\limsup_n\P_{H_0}(\text{F-}\theta_n\text{ rejects})\le\alpha$, and F-$\theta_n$ is consistent against every fixed alternative.
+\end{theorem}
+
+The coupling bound $e_n$ depends on $\min_{j\notin S_0}d_j$ and is not uniform. If a source sits at distance $d_{j,n}\approx\theta_n$ (or $d_{j,n}\approx c\theta_n$ with $\sqrt n\theta_n$ only moderately large), then $\P(j\in\hat S)$ stays away from $0$ and $1$, the coupling fails, and the selection and the final statistic share the control sample. The only general bound is then $\min(1,2^J\alpha)$. We check this boundary regime by simulation (BoundNull in \cref{sec:experiments}).
+
+\subsection{Vanishing borrowing mass}\label{sec:mass}
+
+\begin{proposition}[Vanishing mass]\label{prop:mass}
+Let $w_n\in\Wset$ be deterministic with $s(w_n)\le b_n$. V-$b_n$ has exact level. In every row, $D(\hat Q_{f,b},Q^m_{c,A_b})\le b_n\max_j D(Q^m_{c,A_b},Q^{\ell_j}_{h_j})\le2\kappa b_n$, so A-Theorem~3.13 gives consistency against every fixed alternative if $b_n\to0$, and uniform consistency over $\{D(Q_c,Q_t)\ge d_n\}$ if $\sqrt n(d_n-4\kappa b_n)\to\infty$.
+\end{proposition}
+
+\begin{proposition}[No first-order gain from vanishing mass]\label{prop:nogain}
+Suppose $D(Q_c,Q_{t,n})=O(n^{-1/2})$ and $b_n\to0$. In every row,
+\[
+n\,\big|S^{\rm bor}_b-S^{\rm cur}_b\big|\le 2\sqrt n\norm{u_b}\cdot\sqrt{nS^{\rm cur}_b}+n\norm{u_b}^2,\qquad u_b=\sum_jw_{n,j}(\hxi_j-\hxi_{c,A_b}).
+\]
+If every source equals $Q_c$, then $\sqrt n\norm{u_b}=O_P(b_n)$, so $n(S^{\rm bor}_b-S^{\rm cur}_b)\to0$ in probability for every row. Borrowing with vanishing mass then changes the $n$-scaled statistics by $o_P(1)$ and yields no first-order local power gain. If a source has a fixed distance $d_j>0$, the same holds if $\sqrt n\,b_n\to0$. For $b_n\asymp n^{-1/2}$ the borrowed statistic carries a local bias that can raise or lower local power.
+\end{proposition}
+
+By contrast, a shrinking radius with $n\theta_n^2\to\infty$ keeps an identical source at its full weight $\ell/(m+\ell)$, which is why radius schedules can improve local power when the sources really are identical (\cref{sec:results}).
+
+\subsection{The partial bootstrap under a shrinking radius}\label{sec:pb}
+
+With $\theta_n\to0$ the merged sources are, asymptotically, exactly the identical ones (\cref{cor:oracle}). This is the case $Q_h=Q_c$ that \citet[Theorem 3.5]{yang2026} exclude, so the partial bootstrap needs separate treatment.
+
+\paragraph{Degeneracy.} Write $A_n=(1-\gamma)(\hxi_h-\hxi_c)$ and $B_n=\hxi_t-\hxi_c$, so that $\Delta/\sqrt n=-2\ip{A_n}{B_n}+\norm{B_n}^2$. When $Q_h=Q_c=Q_t$, both $A_n$ and $B_n$ are $O_P(n^{-1/2})$, so $\Delta=O_P(n^{-1/2})$ and the relevant scale is $\Lambda:=\sqrt n\Delta=n\{-2\ip{A_n}{B_n}+\norm{B_n}^2\}$. By the Hilbert-space central limit theorem, $\Lambda\rightsquigarrow-2(1-\gamma)\ip{U}{V}+\norm V^2$ with $U=G_h/\sqrt{c_2}-G_c/\sqrt{c_1}$ and $V=G_t-G_c/\sqrt{c_1}$, where $G_c,G_t,G_h$ are i.i.d.\ centred Gaussian elements with the covariance operator of $k(\cdot,X)$, $X\sim Q_c$. This is a Gaussian chaos of order two, not a normal law.
+
+\paragraph{The bootstrap world differs.} In Algorithm~2 of \citet{yang2026}, the historical sample is resampled from $Q_h^\ell$ and the current control from $Q_c^m$. The bootstrap population therefore has a fixed displacement $A^{\rm obs}=(1-\gamma)(\hxi_h-\hxi_c)\neq0$ of order $n^{-1/2}$, and conditionally
+\[
+\Lambda^\ast\rightsquigarrow-2(1-\gamma)\ip{U^{\rm obs}+U^\ast}{V^\ast}+\norm{V^\ast}^2,
+\]
+where $U^{\rm obs}$ is the realised value of $U$ and $(U^\ast,V^\ast)$ is an independent copy of $(U,V)$. The bootstrap law is a mixture indexed by $U^{\rm obs}$, with an extra term that is absent from the true limit. Validity therefore does not follow from Proposition~3.4 of the original, and we could not prove it.
+
+\begin{conjecture}[Conservativeness at degeneracy]\label{conj:pb}
+Under $Q_h=Q_c=Q_t$ and fixed ratios, $\limsup_n\P(\Delta>\hat q^{\ast}_{1-\alpha})\le\alpha$ for the partial bootstrap with $B\to\infty$.
+\end{conjecture}
+
+\textit{Evidence.} (i) In the scalar (linear-kernel) version of the two limits, with $(c_1,c_2)\in\{(0.5,1),(0.5,0.5),(1,1),(0.25,1),(1,4)\}$, the limiting rejection probability computed by Monte Carlo ($2000$ draws of $U^{\rm obs}$, $4000$ bootstrap draws each) is $0.033,0.036,0.039,0.029,0.031$, all below $0.05$ (script \texttt{pb\_scalar.py}). (ii) The RBF simulations in \cref{sec:results} report PB-ALL under NullIdent. (iii) \citet{yang2026} report conservative behaviour in their Figure~2. A conservative bootstrap would protect level but lose power exactly where shrinking radii borrow, namely from identical sources.
+
+\subsection{Choosing the schedule before the study}\label{sec:planning}
+
+The theory restricts the exponent to $0<a<1/2$ if identical sources are to be retained. Within that range, smaller $a$ retains sources longer but leaves the blind spot \eqref{thm:localblind} wider, of order $n^{-a}$. A transparent prespecification is the following.
+\begin{enumerate}[leftmargin=1.4em,itemsep=1pt]
+\item Choose a planning sample size $n_0$ and a tolerance $\theta_0$ at $n_0$, for instance the largest discrepancy that subject-matter experts would ignore. Alternatively, choose $\theta_0$ so that an identical source is accepted with a target probability $\pi_0$ at $n_0$ under a planning model, using simulation only (no outcome data).
+\item Choose $a\in(0,1/2)$; we use $a=1/4$ as a compromise. At $n=16n_0$ it halves the radius ($16^{-1/4}=1/2$), while $\sqrt n\theta_n$ still grows like $n^{1/4}$.
+\item Report the implied radius and the implied worst-case local blind spot, of order $\theta_n$ (\cref{thm:Rfixed,thm:localblind}), at the actual sample size.
+\end{enumerate}
+In our experiments $\theta_0=0.5$, $n_0=50$ and $a\in\{0.25,0.45,0.75\}$. These were fixed before any run and not changed afterwards.
+
+\begin{table}[t]
+\centering\small
+\caption{Summary of guarantees for a single source ($J=1$), fixed $B$ with $\alpha L\ge1$. ``Pointwise'': fixed distributions; ``uniform'': worst case over sequences.}\label{tab:summary}
+\begin{tabular}{@{}p{3.2cm}p{3.1cm}p{3.6cm}p{3.6cm}@{}}
+\toprule
+Procedure & Level & Consistency (fixed $Q_t\neq Q_c$) & Uniform detection boundary\\
+\midrule
+CUR & exact & yes & $\sqrt n d_n\to\infty$\\
+F-$\theta$, PB-$\theta$ (fixed $\theta$) & asymptotic (original), $\le2\alpha$ uniformly & no (Remark 3.19) & none\\
+R-$\theta$ (fixed $\theta$) & exact & no (A-Theorem 3.14) & $d_n>2\rho\theta$\\
+R-$\theta_n$, $\theta_n\to0$ & exact & yes, any rate & $\asymp\theta_n$ (sharp)\\
+F-$\theta_n$, $n\theta_n^2\to\infty$ & pointwise asymptotic; $\le2\alpha$ uniformly & yes (pointwise) & $\asymp\theta_n$ (sharp)\\
+PB-$\theta_n$ & open (\cref{conj:pb}) & not established & --\\
+V-$b_n$, $b_n\to0$ & exact & yes & $\sqrt n(d_n-4\kappa b_n)\to\infty$\\
+G (minP) & exact & yes & $\sqrt nd_n\to\infty$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%======================================================================
+\section{Synthetic Experiments}\label{sec:experiments}
+\input{sec_experiments_B.tex}
+
+\section{Results}\label{sec:results}
+\input{sec_results_B.tex}
+
+%======================================================================
+\appendix
+\section{Proofs}\label{app:proofs}
+
+Proofs of A-Theorems 3.2 and 3.13 and A-Proposition~3.15 are in Study~A, Appendix~A. We repeat the two facts that are used repeatedly. (F1) For an i.i.d.\ sample of size $M$ from $R$, $\E\norm{\hxi-\xi_R}^2=v_R/M\le\kappa^2/M$. (F2) For a uniform $m$-subset $A$ of fixed pooled values, $\E_A\norm{\hxi_{c,A}-\hxi_{t,A}}^2\le M_{m,n}$, and since $\hxi_{c,A}-\hxi_{\rm pool}=\eta(\hxi_{c,A}-\hxi_{t,A})$, also $\E_A\norm{\hxi_{c,A}-\hxi_{\rm pool}}^2\le\eta^2M_{m,n}$.
+
+\begin{proof}[Proof of \cref{lem:q}]
+As in A-Lemma~3.10. For the pooled variant, $\E^\ast\norm{\hxi^\ast_{\rm pool}-\hxi_{\rm pool}}^2\le\kappa^2/m$ by (F1) applied to the bootstrap distribution with $M=m$ draws.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:fusion}]
+Write $\epsilon_j=\norm{(\hxi_j-\hxi_c)-(\xi_j-\xi_c)}$, so $\E\epsilon_j^2=v_c/m+v_j/\ell_j\le s_j$ by (F1) and independence, and $|\hat D_j-d_j|\le\epsilon_j$.
+(a) Exclusion requires $\hat D_j+q_j\ge\theta_n$, hence $\epsilon_j+q_j\ge\theta_n-d_j$, hence $\epsilon_j\ge(\theta_n-d_j)/2$ or $q_j\ge(\theta_n-d_j)/2$. Apply Markov's inequality to $\epsilon_j^2$ and $q_j^2$ (\cref{lem:q}).
+(b) Inclusion requires $\hat D_j<\theta_n$, hence $\epsilon_j>d_j-\theta_n$, and Markov's inequality gives the bound.
+In a permutation row the control sample is a uniform subset of the pool. Replace $\epsilon_j$ by $\norm{(\hxi_j-\hxi_{c,A})-(\xi_j-\xi_{d})}$ and $d_j$ by $D(Q_d,Q_{h_j})$ with $\xi_d=\lambda\xi_c+(1-\lambda)\xi_t$; (F1), (F2) and the triangle inequality give the same bounds with $s_j$ replaced by $3(s_j+\eta^2M_{m,n})$.
+For the consequences: if $d_j>0$ is fixed and $\theta_n\to0$, (b) gives $O(n^{-1})$. If $d_j=0$, (a) gives $O(1/(n\theta_n^2))$, using $\bar q_{n,j}^2=O(n^{-1})$. If $\sqrt n\theta_n\to0$ and $d_j=0$, inclusion requires $\sqrt n\hat D_j<\sqrt n\theta_n\to0$. But $\sqrt n(\hxi_j-\hxi_c)$ converges in distribution to a centred Gaussian element $G$ in $\Hk$ with covariance $(c_1^{-1}+c_{2j}^{-1})\Sigma$ \citep[Hilbert-space CLT; see][]{yang2026}, and $\Sigma\neq0$ when $v_{Q_c}>0$. A nondegenerate centred Gaussian measure on a separable Hilbert space gives mass zero to $\{0\}$, so by the portmanteau theorem $\limsup\P(\sqrt n\hat D_j<\varepsilon)\le\P(\norm G\le\varepsilon)\to0$ as $\varepsilon\downarrow0$. The triangular-array statements follow from (a) and (b), whose right-hand sides depend on the distributions only through $d_{j,n}$ and $\kappa$.
+\end{proof}
+
+\begin{proof}[Proof of \cref{cor:oracle}]
+A union bound over $j$ of the two cases of \cref{thm:fusion}.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:Rfixed}]
+In every row each accepted source satisfies $D(Q^m_{c,A_b},Q^{\ell_j}_{h_j})<\theta_n-q_j\le\theta_n$, so with sample-size pooling $D(\hat Q_{f,b},Q^m_{c,A_b})\le\rho\theta_n$ (A-Lemma~3.9). Apply A-Theorem~3.13 with $\delta=\rho\theta_n$. Its bound depends on the distributions only through $d$ and $\kappa$, which gives the uniform statement.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:localblind}]
+Write $\theta=\theta_n$, $\xi_h=\xi_{Q_{h,n}}$, $\xi_t=\xi_{Q_{t,n}}=\gamma\xi_c+(1-\gamma)\xi_h$, so $\norm{\xi_t-\xi_c}=(1-\gamma)c\theta$ and $\sqrt n\norm{\xi_t-\xi_c}\to\infty$. The current-only test and G are consistent along this sequence by A-Theorem~3.13 with $\delta=0$ (and A-Proposition~3.15 for G), because the bound depends only on $d_n$ and $\sqrt nd_n\to\infty$.
+
+\emph{Observed row.} $\hat D\le c\theta+\epsilon$ with $\E\epsilon^2\le s=O(n^{-1})$, and $q=O_P(n^{-1/2})$. Since $\sqrt n\theta\to\infty$, $\P(\hat D+q<\theta)\ge1-\P(\epsilon+q\ge(1-c)\theta)\to1$: the source is accepted. Then $\hxi_f-\hxi_t=\gamma e_c+(1-\gamma)e_h-e_t$, where $e_\cdot$ are the centred empirical errors, because $\gamma\xi_c+(1-\gamma)\xi_h-\xi_t=0$. So $\E S_0\le\kappa^2(\gamma^2/m+(1-\gamma)^2/\ell+1/n)=O(n^{-1})$ and $nS_0=O_P(1)$.
+
+\emph{Rows $b\ge1$.} Let $\xi_d=\lambda\xi_c+(1-\lambda)\xi_t$. By (F1) and (F2), $\hxi_{c,A_b}-\xi_d=O_P(n^{-1/2})$ and $\hxi_{t,A_b}-\xi_d=O_P(n^{-1/2})$. Now $\xi_d-\xi_h=\{\lambda+(1-\lambda)\gamma\}(\xi_c-\xi_h)$, so $D(Q^m_{c,A_b},Q^\ell_h)\le\kappa_0c\theta+O_P(n^{-1/2})$ with $\kappa_0=\lambda+(1-\lambda)\gamma<1$, and the source is accepted in every row with probability tending to one. Then
+\[
+\hxi_{f,b}-\hxi_{t,A_b}=(1-\gamma)(\xi_h-\xi_d)+O_P(n^{-1/2}),\qquad\norm{(1-\gamma)(\xi_h-\xi_d)}=(1-\gamma)\kappa_0c\theta,
+\]
+so $\sqrt{nS_b}\ge\sqrt n(1-\gamma)\kappa_0c\theta-O_P(1)\to\infty$. With $B$ fixed, $\P(S_b>S_0\ \forall b\ge1)\to1$, on which event $p=1$. The frozen test uses the observed (accepted) selection in every row, and the same argument applies.
+\end{proof}
+
+\begin{remark}[Partial bootstrap along the same sequence]
+For PB-$\theta_n$, $\norm{\hxi_f-\hxi_c}^2\approx(1-\gamma)^2c^2\theta^2$ and $S_0=O_P(n^{-1})$, so $\Delta\approx-\sqrt n(1-\gamma)^2c^2\theta^2$, whereas the bootstrap statistic is $O_P(\theta)+O_P(n^{-1/2})$. Since $\sqrt n\theta^2/\theta=\sqrt n\theta\to\infty$, $\Delta$ lies below the bootstrap quantile with probability tending to one. We have not written out the conditional-law details.
+\end{remark}
+
+\begin{proof}[Proof of \cref{thm:frozen}]
+Use the same permutations for both tests. On $\{\hat S=S_0\}$ the frozen test and the oracle coincide, so $|\P(\text{F rejects})-\P(\phi^{\rm or}=1)|\le\P(\hat S\neq S_0)\le e_n$ (\cref{cor:oracle}). The oracle is a fixed-rule partial-permutation test and has level $\lfloor\alpha L\rfloor/L$. Under a fixed alternative, the oracle pools only sources distributed as $Q_c$, so its observed fused embedding converges to $\xi_c$ and $S_0\to d^2=D^2(Q_c,Q_t)$. In row $b\ge1$ the fused embedding converges to $\gamma_0\xi_d+(1-\gamma_0)\xi_c$ with $\gamma_0=m/(m+\ell_{S_0})$, and $S_b\to\norm{(1-\gamma_0)(\xi_c-\xi_d)}^2=(1-\gamma_0)^2(1-\lambda)^2d^2<d^2$ (with $\gamma_0=1$ if $S_0=\emptyset$). With $B$ fixed, $p\to1/L\le\alpha$ in probability, so the oracle is consistent, and so is the frozen test.
+\end{proof}
+
+\begin{proof}[Proof of \cref{prop:mass}]
+The weights are fixed, so A-Theorem~3.2 applies with a constant rule. In every row $\hxi_{f,b}-\hxi_{c,A_b}=\sum_jw_{n,j}(\hxi_j-\hxi_{c,A_b})$, whose norm is at most $b_n\max_j\norm{\hxi_j-\hxi_{c,A_b}}\le2\kappa b_n$. Then apply A-Theorem~3.13 with $\delta=2\kappa b_n$.
+\end{proof}
+
+\begin{proof}[Proof of \cref{prop:nogain}]
+With $\Delta_b=\hxi_{c,A_b}-\hxi_{t,A_b}$ we have $S^{\rm cur}_b=\norm{\Delta_b}^2$ and $S^{\rm bor}_b=\norm{\Delta_b+u_b}^2$, so $|S^{\rm bor}_b-S^{\rm cur}_b|\le2\norm{\Delta_b}\norm{u_b}+\norm{u_b}^2$. Under local alternatives $nS^{\rm cur}_b=O_P(1)$ in every row, by (F1) for $b=0$ and (F2) for $b\ge1$. If all sources equal $Q_c$, then $\hxi_j-\hxi_{c,A_b}=O_P(n^{-1/2})$, because $\xi_j=\xi_c$ and $\xi_d-\xi_c=(1-\lambda)(\xi_{t,n}-\xi_c)=O(n^{-1/2})$; hence $\sqrt n\norm{u_b}=O_P(b_n)$. If $d_j>0$ is fixed, $\norm{u_b}=O_P(b_n)$, and $\sqrt nb_n\to0$ makes both terms $o_P(n^{-1})$.
+\end{proof}
+
+\section{Additional results}\label{app:additional}
+\input{app_additional_B.tex}
+
+\section{Implementation and reproducibility}\label{app:repro}
+\input{app_repro.tex}
+
+\input{references.tex}
+\end{document}

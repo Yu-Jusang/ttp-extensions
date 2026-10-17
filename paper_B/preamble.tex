@@ -1,0 +1,66 @@
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{newtxtext}
+\usepackage[varvw]{newtxmath}
+\usepackage[a4paper,top=30mm,bottom=30mm,left=30mm,right=30mm,headheight=14pt]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath,amsthm,mathtools}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[round,authoryear]{natbib}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf}
+\usepackage[hyphens]{url}
+\usepackage[hidelinks,bookmarksnumbered]{hyperref}
+\usepackage[nameinlink,capitalise]{cleveref}
+
+\setlength{\parskip}{0.35em}
+\setlength{\parindent}{0pt}
+\linespread{1.08}
+
+% headings: bold, numbered, thin rule under sections
+\titleformat{\section}{\large\bfseries}{\thesection}{0.8em}{}[\vspace{-0.4ex}\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\itshape}{\thesubsubsection}{0.8em}{}
+\titlespacing*{\section}{0pt}{2.2ex plus .5ex}{1.4ex}
+\titlespacing*{\subsection}{0pt}{1.8ex plus .4ex}{0.8ex}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\crefname{assumption}{Assumption}{Assumptions}
+\crefname{conjecture}{Conjecture}{Conjectures}
+
+% notation
+\newcommand{\E}{\mathbb{E}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Hk}{\mathcal{H}_k}
+\newcommand{\norm}[1]{\lVert #1\rVert}
+\newcommand{\ip}[2]{\langle #1, #2\rangle}
+\newcommand{\hxi}{\hat\xi}
+\newcommand{\Qc}{Q_c}
+\newcommand{\Qt}{Q_t}
+\newcommand{\Wset}{\mathcal{W}_J}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\Var}{\operatorname{Var}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\indep}{\perp\!\!\!\perp}
