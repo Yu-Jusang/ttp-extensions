@@ -42,7 +42,24 @@
    "state": "todo"
   }
  ],
- "files": [],
+ "files": [
+  {
+   "href": "papers/paper_A.pdf",
+   "label": "논문 A (초안 PDF, 30분마다 갱신): Multi-source Distributional Test-then-pool"
+  },
+  {
+   "href": "papers/paper_B.pdf",
+   "label": "논문 B (초안 PDF, 30분마다 갱신): Shrinking Equivalence Radii and Vanishing Borrowing"
+  },
+  {
+   "href": "https://github.com/Yu-Jusang/ttp-extensions/tree/main/code",
+   "label": "코드와 실행 방법 (code/README.md)"
+  },
+  {
+   "href": "https://github.com/Yu-Jusang/ttp-extensions/tree/main/results",
+   "label": "원시 시뮬레이션 결과 (results/*.npz, *_meta.json)"
+  }
+ ],
  "entries": [
   {
    "date": "2026. 10. 18 (일)",
