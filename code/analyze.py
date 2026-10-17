@@ -273,7 +273,7 @@ def fig_A_n(suite='A_n', tag=''):
                 continue
             r = np.array(r)
             ls, mk, col = STYLES[k]
-            ax.errorbar(ms[:len(r)], r[:, 0], yerr=[r[:, 0] - r[:, 1], r[:, 2] - r[:, 0]], ls=ls, marker=mk,
+            ax.errorbar(ms[:len(r)], r[:, 0], yerr=np.clip([r[:, 0] - r[:, 1], r[:, 2] - r[:, 0]], 0, None), ls=ls, marker=mk,
                         color=col, mfc='white' if k % 2 else col, elinewidth=0.5, capsize=1.0, label=lab)
         ax.set_xscale('log', base=2)
         ax.set_xticks(ms)
@@ -320,7 +320,7 @@ B_METHS = [('CUR', 'CUR'), ('ALL', 'ALL'), ('R-fix', 'R fixed'), ('R-a25', 'R a=
 
 def B_panels(P, settings, fname, meths=B_METHS, ncol=4, null_like=()):
     rows = int(np.ceil(len(settings) / ncol))
-    fig, axes = plt.subplots(rows, ncol, figsize=(7.4, 2.35 * rows), squeeze=False)
+    fig, axes = plt.subplots(rows, ncol, figsize=(7.4, (2.35 if ncol > 2 else 2.6) * rows), squeeze=False)
     for ax, st in zip(axes.ravel(), settings):
         for k, (mth, lab) in enumerate(meths):
             pts = [(n, rate(P[(st, 'n', str(n))][mth])) for n in NS
@@ -330,7 +330,7 @@ def B_panels(P, settings, fname, meths=B_METHS, ncol=4, null_like=()):
             n_ = [p[0] for p in pts]
             r = np.array([p[1] for p in pts])
             ls, mk, col = STYLES[k % len(STYLES)]
-            ax.errorbar(n_, r[:, 0], yerr=[r[:, 0] - r[:, 1], r[:, 2] - r[:, 0]], ls=ls, marker=mk, color=col,
+            ax.errorbar(n_, r[:, 0], yerr=np.clip([r[:, 0] - r[:, 1], r[:, 2] - r[:, 0]], 0, None), ls=ls, marker=mk, color=col,
                         mfc='white' if k % 2 else col, elinewidth=0.5, capsize=1.0, label=lab)
         ax.set_xscale('log', base=2)
         ax.set_xticks(NS)
@@ -375,7 +375,10 @@ def study_B(suite='B_n', local='B_local', tag=''):
         P, T, I = d
         nulls = ['NullIdent', 'NullShift', 'NullFar', 'Multi2Null']
         alts = ['PowIdent', 'BlindSpot', 'Multi2Pow']
-        B_panels(P, nulls, f'fig_B_null{tag}.pdf')
+        null_meths = [('CUR', 'CUR'), ('R-fix', 'R fixed'), ('R-a25', 'R a=.25'), ('F-fix', 'F fixed'),
+                      ('F-a25', 'F a=.25'), ('PB-fix', 'PB fixed'), ('PB-a25', 'PB a=.25'), ('PB-ALL', 'PB always'),
+                      ('V-b25', 'V b=.25'), ('G-a25', 'G a=.25')]
+        B_panels(P, nulls, f'fig_B_null{tag}.pdf', meths=null_meths, ncol=2)
         B_panels(P, alts, f'fig_B_power{tag}.pdf', ncol=3)
         tm = [('CUR', 'CUR'), ('R-fix', 'R fix'), ('R-a25', 'R .25'), ('R-a45', 'R .45'), ('R-a75', 'R .75'),
               ('F-fix', 'F fix'), ('F-a25', 'F .25'), ('PB-fix', 'PB fix'), ('PB-a25', 'PB .25'),
@@ -423,7 +426,7 @@ def study_B(suite='B_n', local='B_local', tag=''):
     if d is not None:
         P, T, I = d
         sets = ['BoundNull', 'LocBlind', 'LocPow', 'LocAlign']
-        B_panels(P, sets, f'fig_B_local{tag}.pdf', null_like=('BoundNull',))
+        B_panels(P, sets, f'fig_B_local{tag}.pdf', ncol=2, null_like=('BoundNull',))
         tm = [('CUR', 'CUR'), ('ALL', 'ALL'), ('R-fix', 'R fix'), ('R-a25', 'R .25'), ('R-a45', 'R .45'),
               ('R-a75', 'R .75'), ('F-fix', 'F fix'), ('F-a25', 'F .25'), ('PB-a25', 'PB .25'), ('V-b25', 'V .25'),
               ('V-b50', 'V .50'), ('G-a25', 'G .25')]

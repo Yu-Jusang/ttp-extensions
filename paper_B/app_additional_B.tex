@@ -1,1 +1,18 @@
-TBD
+\begin{table}[h]
+\centering\scriptsize\setlength{\tabcolsep}{2.6pt}
+\caption{Power with fixed populations (B\_n, $1000$ data sets per cell). G fix and G .25 are minP combinations of current-only testing with R-$\theta^{\rm fix}$ and R-$\theta^{(0.25)}$.}\label{tab:Bpower}
+\input{gen/tab_B_power.tex}
+\end{table}
+
+\begin{table}[h]
+\centering\scriptsize\setlength{\tabcolsep}{2.6pt}
+\caption{Sample-size-dependent populations (B\_local; BoundNull $2000$ data sets per cell, others $1000$). Bold with $\uparrow$: Wilson interval entirely above $0.05$ (BoundNull only).}\label{tab:Blocal}
+\input{gen/tab_B_local.tex}
+\end{table}
+
+\IfFileExists{gen/tab_repro_bw.tex}{%
+\begin{table}[h]
+\centering\small
+\caption{Original Table~2 rows with fixed bandwidth $s$, read as $k(x,y)=e^{-(x-y)^2/s^2}$; $1000$ data sets per cell; frozen selection as in the original. ``original'' rows copy \citet[Table 2]{yang2026}.}\label{tab:repro_bw}
+\input{gen/tab_repro_bw.tex}
+\end{table}}{}

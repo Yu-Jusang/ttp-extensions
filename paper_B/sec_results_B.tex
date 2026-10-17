@@ -1,2 +1,72 @@
-\subsection{Results}\label{sec:resB}
-TBD
+\subsection{Reproduction of the original experiment}\label{sec:repro}
+
+\begin{table}[h]
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{Reproduction of \citet[Table 2, median-heuristic row]{yang2026}, shared with Study~A: merge rate and rejection rates, $1000$ data sets per row ($m=50$, $n=\ell=100$, fixed $\theta=0.4$). Bold with $\uparrow$: Wilson 95\% interval above $0.05$.}\label{tab:repro}
+\input{gen/tab_repro.tex}
+\end{table}
+
+\Cref{tab:repro} reproduces the qualitative behaviour of the original single-source procedure. Under the null the frozen partial bootstrap and frozen partial permutation reject at $0.078$ and $0.067$ (original: $0.064$, $0.051$); reselection gives $0.046$. When the historical shift points in the direction of the effect ($\mu_c-\mu_t=-0.4$), the partial bootstrap is less powerful than current-only testing ($0.402$ vs.\ $0.490$). This is the fixed-radius cancellation of Remark~3.19 that motivates this paper. Merge rates and power levels differ from the original. A check with the original fixed bandwidths (\cref{tab:repro_bw}) brings the merge rates closer but not the power levels, and we could not identify the remaining difference. All our comparisons are therefore made within our own runs.
+
+\subsection{Type-I error with fixed populations}\label{sec:resnull}
+
+\begin{table}[t]
+\centering\scriptsize\setlength{\tabcolsep}{2.4pt}
+\caption{Null rejection rates (B\_n, $2000$ data sets per cell; $m=n/2$, $\ell_j=n$). Columns R are reselected, F frozen with partial permutation, PB frozen with the original partial bootstrap, PB all always merges with partial bootstrap, V vanishing mass, G minP safeguard. Bold with $\uparrow$: Wilson interval entirely above $0.05$. At $n=50$ all radius schedules coincide ($\theta=0.5$).}\label{tab:Bnull}
+\input{gen/tab_B_null.tex}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{gen/fig_B_null.pdf}
+\caption{Null rejection rates against $n$ (B\_n), with Wilson 95\% intervals and a dotted line at $0.05$.}\label{fig:Bnull}
+\end{figure}
+
+\Cref{tab:Bnull,fig:Bnull} show the following.
+\begin{enumerate}[leftmargin=1.4em,itemsep=1pt]
+\item \emph{Reselected radius tests, vanishing masses and the safeguard} stayed between $0.035$ and $0.060$ in all $20$ null cells, as \cref{prop:Rlevel} guarantees. The only cells flagged are those at $n=50$ in NullIdent. At $n=50$ every schedule has the same radius, so these cells repeat one test on the same data, and current-only testing itself gave $0.059$ there.
+\item \emph{Frozen selection with a shrinking radius is only pointwise valid.} With an identical source (NullIdent), F-$\theta^{(0.25)}$ starts at $0.076$ and settles at $0.047$--$0.050$ from $n=200$ on, as \cref{thm:frozen} predicts. With a slightly shifted source (NullShift, $D=0.131$) it stays at $0.064$--$0.074$ up to $n=800$. The source lies inside $\theta^{(0.25)}_n$ throughout the range (the radius only reaches $0.131$ near $n\approx10^4$), and its acceptance probability stays between $0.53$ and $0.88$, so the selection never stabilises. This is the non-uniformity anticipated in \cref{sec:frozen}: the pointwise guarantee applies only once $\theta_n$ is well below every non-identical source distance. Before that, a frozen test can be miscalibrated for a long time.
+\item \emph{The original partial bootstrap.} With a fixed radius and a merged shifted source, PB-$\theta^{\rm fix}$ rejected at $0.085$--$0.110$ (NullShift, Multi2Null) and $0.068$--$0.078$ (NullFar). With merged identical sources, the bootstrap is conservative: PB-ALL in NullIdent falls from $0.034$ to $0.025$ as $n$ grows, and PB-$\theta^{(0.25)}$ in Multi2Null stays at $0.032$--$0.036$ once only the identical source is merged. This supports \cref{conj:pb}. The anti-conservative cases are nondegenerate ($Q_h\neq Q_c$), and there PB-ALL approaches $0.05$ only slowly (NullFar: $0.087\to0.051$), which is consistent with the original asymptotic Theorem~3.5 but not with good finite-sample behaviour.
+\end{enumerate}
+
+\subsection{Power with fixed populations}\label{sec:respower}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{gen/fig_B_power.pdf}
+\caption{Power against $n$ (B\_n, $1000$ data sets per point, Wilson 95\% intervals). BlindSpot: $Q_h=N(0.8,1)$, $Q_t=\frac13N(0,1)+\frac23N(0.8,1)$. Multi2Pow: sources $N(0,1)$ and $N(0.8,1)$, $Q_t=N(0.3,1)$.}\label{fig:Bpower}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{gen/fig_B_accept.pdf}
+\caption{Acceptance rate of each source in the observed row, by schedule (B\_n). In Multi2Null, $h_1=N(0,1)$ is identical and $h_2=N(0.8,1)$ is shifted.}\label{fig:Baccept}
+\end{figure}
+
+\paragraph{The fixed-radius blind spot grows with $n$; shrinking radii remove it.} In BlindSpot (\cref{fig:Bpower}; full table in \cref{app:additional}), the power of R-$\theta^{\rm fix}$ falls from $0.546$ ($n=100$) to $0.000$ ($n=800$), because the source is accepted more and more often ($0.17\to1.00$, \cref{fig:Baccept}). Current-only testing reaches $1.000$. With $\theta^{(0.25)}$ the source is eventually rejected ($0.002$ acceptance at $n=200$), and power follows the current-only curve with a lag ($0.630$, $0.821$, $0.945$, $0.999$ against $0.738$, $0.966$, $1.000$, $1.000$). Faster schedules match current-only testing from $n=200$. The frozen versions recover in the same way. Vanishing masses recover much more slowly ($b^{(0.25)}$: $0.647$ at $n=800$), as the prespecified mass shrinks only like $n^{-1/4}$.
+
+\paragraph{Retaining identical sources pays off; shrinking too fast forfeits it.} With an identical source (PowIdent), R-$\theta^{\rm fix}$ and R-$\theta^{(0.25)}$ improve on current-only testing by $7$--$12$ points for $100\le n\le400$ (e.g.\ $0.650$ and $0.623$ vs.\ $0.526$ at $n=200$), close to always pooling ($0.650$). With $a=0.75$ the source is dropped from $n=200$ on, as \cref{thm:fusion} predicts for $\sqrt n\theta_n\to0$, and the test coincides with current-only testing. With $a=0.45$, near the boundary $a=1/2$, the source is accepted in $80$--$94\%$ of data sets, yet reselection gains nothing ($0.511$ vs.\ $0.526$ at $n=200$). In this regime the selection in permuted rows is unstable, which adds noise to the reference distribution. At $n=50$, all reselected tests lose to current-only testing ($0.135$ vs.\ $0.169$); frozen tests appear better ($0.233$) but are not calibrated at that size.
+
+\paragraph{Two sources (Multi2Pow).} With one identical and one shifted source, the fixed radius eventually accepts both, and power collapses ($0.014$ at $n=800$, against $0.989$ for current-only testing). The treatment shift $0.3$ points towards the shifted source, so pooling masks it. With $\theta^{(0.25)}$ only the identical source survives (\cref{fig:Baccept}), and power is above current-only testing for $n\ge400$ ($0.908$ vs.\ $0.871$; $0.996$ vs.\ $0.989$) and close to it below. This is the selection-stabilisation behaviour of \cref{cor:oracle}.
+
+\input{sec_results_B_local.tex}
+
+\subsection{Independent-seed confirmation}\label{sec:confirm}
+\IfFileExists{sec_confirm_B.tex}{\input{sec_confirm_B.tex}}{Confirmation runs pending.}
+
+\subsection{Computation}\label{sec:compB}
+Per data set on one worker at $n=50,200,800$: shared Gram matrix and permutation statistics $0.005$, $0.026$ and $0.29$\,s; label-invariant fusion bootstrap $0.008$, $0.043$ and $0.37$\,s; each additional radius schedule (reselected or frozen) under $1$\,ms, because all schedules reuse the same distances and critical values; partial bootstrap $0.003$, $0.023$ and $0.17$\,s. With a label-invariant critical value, reselection costs no more than freezing.
+
+\subsection{Discussion and conclusions}\label{sec:discussion}
+
+\paragraph{Answers to the questions posed.}
+\begin{itemize}[leftmargin=1.4em,itemsep=1pt]
+\item \emph{When does power tend to one for every fixed alternative?} For the reselected test, whenever $\theta_n\to0$ (\cref{thm:Rfixed}). For the frozen test, under $\theta_n\to0$ and $n\theta_n^2\to\infty$, pointwise (\cref{thm:frozen}). For vanishing mass, whenever $b_n\to0$ (\cref{prop:mass}). The experiments confirm that the fixed-radius blind spot worsens with $n$ (power $0.000$ at $n=800$) and that every shrinking schedule removes it.
+\item \emph{How slowly must the radius shrink to keep an identical source?} $n\theta_n^2\to\infty$ suffices, and $\sqrt n\theta_n\to0$ loses it (\cref{thm:fusion}). Empirically $a=0.25$ kept the source ($\ge0.95$ acceptance from $n=100$), $a=0.75$ lost it by $n=200$, and $a=0.45$ kept it in $80$--$94\%$ of data sets without any power benefit.
+\item \emph{Too fast or too slow.} Too fast forfeits borrowing (PowIdent, $a=0.75$). Too slow prolongs the blind spot (BlindSpot, $a=0.25$ lags current-only testing up to $n=400$). It also prolongs the miscalibration of frozen tests (NullShift) and leaves a local blind spot of order $\theta_n$ (LocBlind, power $0.071$ at $n=800$ against $0.779$). No schedule avoids all three (\cref{cor:tradeoff}).
+\item \emph{Local and sample-size-dependent discrepancies.} A source at $\sqrt n$-local distance is indistinguishable from an identical one for every schedule that retains identical sources, so its effect on local power is inherited unchanged (LocAlign). Near the radius, the selection stays random and frozen tests are miscalibrated (BoundNull with fixed $\theta$).
+\end{itemize}
+
+\paragraph{Recommendations.} If a radius schedule is used, combine it with full reselection and a label-invariant fusion critical value. Calibration is then exact and costs nothing extra. Choose $a$ well inside $(0,1/2)$ and report the implied worst-case local blind spot. When uniform protection at the $\sqrt n$ scale matters, add the minP safeguard. In our experiments G-$\theta^{(0.25)}$ was never more than $0.07$ below current-only testing in any setting (the worst case was LocBlind at $n=800$, $0.715$ against $0.779$). It kept part of the borrowing gain with an identical source ($0.568$ vs.\ $0.526$ at $n=200$). Do not rely on the frozen partial bootstrap: it was anti-conservative with shifted merged sources and conservative with identical ones.
+
+\paragraph{What remains open.} We did not prove that any schedule is optimal, and we expect none to be: the trade-off of \cref{cor:tradeoff} suggests that the right object is a rule that is soft at the $n^{-1/2}$ scale (as in Study~A), not a better exponent. Further open questions are the limit of the acceptance probability at $a=1/2$; a proof or disproof of \cref{conj:pb} for general kernels; local power expansions for reselected tests; and data-adaptive radii with a valid selection correction. Our simulations use one-dimensional Gaussian families and one kernel bandwidth. The sizes of the effects we report, though not their direction, should be expected to change with the kernel and the dimension.

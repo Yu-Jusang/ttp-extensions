@@ -1,5 +1,5 @@
 {
- "status": "진행 중 — 연구 B local 실험 완료, B 주 실험 실행 중 (02:14)",
+ "status": "진행 중 — 탐색 실험 전부 완료, 별도 seed 확인 실험 실행 중 (02:48)",
  "flow": [
   {
    "title": "원 논문 검토",
@@ -127,6 +127,13 @@
    "tag": "로컬 PC (15 workers, 14.0분)",
    "title": "연구 B local 실험 완료: 표본 크기에 따라 모집단이 변하는 경우 (25,000 데이터셋)",
    "body": "<p><b>LocBlind</b> (정리 3.6의 수열: $D(Q_c,Q_{h,n})=\\theta_n/2$, $\\theta_n=0.5(n/50)^{-1/4}$, $Q_{t,n}=\\tfrac13Q_c+\\tfrac23Q_{h,n}$):</p><table><tr><th>n</th><th>50</th><th>100</th><th>200</th><th>400</th><th>800</th></tr><tr><td>current-only</td><td>.255</td><td>.343</td><td>.431</td><td>.629</td><td>.779</td></tr><tr><td>R, 반경 고정</td><td>.258</td><td>.180</td><td>.037</td><td>.016</td><td>.013</td></tr><tr><td>R, $a=1/4$</td><td>.258</td><td>.311</td><td>.254</td><td>.176</td><td><b>.071</b></td></tr><tr><td>minP 안전장치 ($a=1/4$)</td><td>.255</td><td>.325</td><td>.380</td><td>.544</td><td>.715</td></tr><tr><td>source 수용률 ($a=1/4$)</td><td>.20</td><td>.36</td><td>.55</td><td>.77</td><td>.93</td></tr></table><p>→ 반경을 줄여도 $\\theta_n$ 크기의 local 대립에서는 검정력 → 0 (current-only는 → 1). 이론의 trade-off가 실험으로 확인됨.</p><p><b>LocPow</b> (동일 source, $\\sqrt n$-local 평균 이동): 동일 source를 계속 쓰는 R(고정, $a=1/4$)은 current-only보다 약 +7%p (0.30 vs 0.23), 빨리 줄이는 $a=3/4$는 current-only와 같아짐. <b>LocAlign</b> ($\\sqrt n$-local historical shift가 treatment와 같은 방향): borrowing이 손해 (0.16 vs 0.23), 원 논문 partial bootstrap은 0.05까지 떨어짐.</p><p><b>BoundNull</b> (source가 정확히 반경 경계): 고정 반경 frozen(F fix)은 수용률이 0.36으로 중간값인 $n=200$에서 0.073로 부풂 — 선택 확률이 0도 1도 아닐 때 frozen calibration이 깨진다는 예측과 일치.</p>"
+  },
+  {
+   "date": "2026. 10. 18 (일)",
+   "time": "02:47",
+   "tag": "로컬 PC (15 workers, 29.3분)",
+   "title": "연구 B 주 실험 완료: $n=50\\ldots800$ (55,000 데이터셋)",
+   "body": "<p><b>BlindSpot 검정력</b> ($Q_h=N(0.8,1)$, $Q_t=\\tfrac13N(0,1)+\\tfrac23N(0.8,1)$):</p><table><tr><th>n</th><th>100</th><th>200</th><th>400</th><th>800</th></tr><tr><td>current-only</td><td>.738</td><td>.966</td><td>1.000</td><td>1.000</td></tr><tr><td>반경 고정 (R fix)</td><td>.546</td><td>.484</td><td>.167</td><td><b>.000</b></td></tr><tr><td>$\\theta_n\\propto n^{-1/4}$</td><td>.630</td><td>.821</td><td>.945</td><td>.999</td></tr><tr><td>$\\theta_n\\propto n^{-3/4}$</td><td>.739</td><td>.966</td><td>1.000</td><td>1.000</td></tr><tr><td>질량 $b_n\\propto n^{-1/4}$</td><td>.031</td><td>.063</td><td>.203</td><td>.647</td></tr></table><p><b>동일 source</b> (PowIdent): 반경 고정·$a=1/4$는 current-only 대비 +7~12%p, $a=3/4$는 source를 버려 current-only와 같음, $a=0.45$는 source를 80–94% 유지하지만 이득 없음.</p><p><b>Type-I</b>: reselection 검정은 20개 귀무 셀 모두 0.035–0.060. 선택 고정(F, $a=1/4$)은 동일 source면 $n\\ge200$에서 정상화되지만, 약간 이동한 source(NullShift, $D=0.131$)에서는 $n=800$까지 0.064–0.074 — 반경이 0.131 아래로 내려가는 $n\\approx10^4$ 전까지 선택이 안정화되지 않기 때문. 원 논문 partial bootstrap은 이동한 source를 합치면 0.085–0.110, 동일 source만 합치면 0.024–0.036 (보수적, conjecture와 일치).</p><p>원 논문 bandwidth로 재현 재확인(repro_bw): merge 비율은 가까워지지만 검정력 수준은 여전히 원 논문보다 낮음 — 원인 미확인, 논문에 그대로 기재.</p>"
   }
  ]
 }
