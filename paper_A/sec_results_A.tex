@@ -1,4 +1,80 @@
-\subsection{Reproduction}\label{sec:repro}
-TBD
-\subsection{Confirmation}\label{sec:confirm}
-TBD
+\subsection{Reproduction of the original single-source experiment}\label{sec:repro}
+
+\begin{table}[h]
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{Reproduction of \citet[Table 2, median-heuristic row]{yang2026}: merge rate and rejection rates, $1000$ data sets per row ($m=50$, $n=\ell=100$, $\theta=0.4$, $\mu_h-\mu_c=0.2$). PB = partial bootstrap, PP = partial permutation; ``frozen'' is the original architecture, ``reselect'' repeats fusion in every permutation. Bold with $\uparrow$: Wilson 95\% interval above $0.05$.}\label{tab:repro}
+\input{gen/tab_repro.tex}
+\end{table}
+
+\Cref{tab:repro} shows that the qualitative findings are reproduced. Under the null ($\mu_c=\mu_t$), both frozen procedures of the original paper exceed the nominal level: $0.078$ (PB) and $0.067$ (PP), against $0.064$ and $0.051$ in the original. The full-reselection version of the same partial permutation gives $0.046$. When $\mu_c-\mu_t=+0.4$ the historical shift points away from the treatment effect and borrowing raises power. When $\mu_c-\mu_t=-0.4$ the shift and the effect point the same way and borrowing lowers power. In that case the partial bootstrap has $0.402$ against $0.490$ for current-only testing, which is the cancellation behind Remark~3.19.
+
+Our merge rate ($0.77$--$0.79$) is much higher than the original $0.27$--$0.31$, so the absolute power values are not comparable. The paper states the bandwidth as the median heuristic but does not fix the kernel parameterisation unambiguously, and it uses a different bandwidth for the merged and unmerged branches. In \cref{app:additional} we repeat the experiment with the fixed bandwidths of the original Table~2 read as $k(x,y)=e^{-(x-y)^2/s^2}$. Under that reading the merge rates there are close to the original ones (\cref{tab:repro_bw}), which suggests that the discrepancy comes from the bandwidth convention rather than from the fusion test.
+
+\subsection{Type-I error}\label{sec:typeI}
+
+\begin{table}[t]
+\centering\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\caption{Null rejection rates (A\_main, $m=40$, $2000$ data sets per row; Monte Carlo s.e.\ $\approx0.005$). Bold with $\uparrow$: Wilson 95\% interval entirely above $0.05$.}\label{tab:null}
+\input{gen/tab_A_null.tex}
+\end{table}
+
+\Cref{tab:null} answers the calibration question directly.
+\begin{itemize}[leftmargin=1.4em,itemsep=1pt]
+\item Every procedure whose level is guaranteed by \cref{thm:level,prop:split,prop:guard} (CUR, ALL, WU-R, WC-R, SW-R, SW-S, WU-S, G-WU, G-SW) stays within Monte Carlo error of $0.05$ in all five scenarios ($0.040$--$0.059$). This includes the Shifted and Opposite scenarios, where every source differs from $Q_c$.
+\item Freezing the selection inflates the size in every scenario. Frozen risk weights (WU-F) reach $0.062$--$0.126$, because the weights take values on a grid of $1330$ points and are fitted to the observed control sample; frozen sourcewise fusion (SW-F) reaches $0.061$--$0.096$. The original partial bootstrap with a frozen selection (SW-PB) reaches $0.093$--$0.139$ when merged sources are shifted (Shifted, Opposite, Mixed). It is conservative ($0.025$) when all merged sources are identical to $Q_c$, the degenerate case the original Theorem~3.5 excludes. Study~B, Section~3.7, analyses this case.
+\item Bonferroni adjustment of the fusion stage does not repair the frozen tests: SW-F and SW-PB use Bonferroni levels throughout. Conversely, removing the adjustment (SWu-R, \cref{app:additional}) leaves the reselected test valid ($0.047$--$0.054$), as \cref{prop:fwer} predicts.
+\end{itemize}
+
+\subsection{Power}\label{sec:powerres}
+
+\begin{table}[p]
+\centering\scriptsize
+\setlength{\tabcolsep}{2.6pt}
+\caption{Rejection rates under alternatives (A\_main, $m=40$, $n=80$, $\ell_j=80$; $1000$ data sets per row). Bold: at least $0.03$ above CUR; italic: at least $0.03$ below CUR. Frozen procedures (WU-F, SW-F, SW-PB) do not control the level (\cref{tab:null}), so their power is not comparable.}\label{tab:power}
+\input{gen/tab_A_power.tex}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{gen/fig_A_diff.pdf}
+\caption{Paired power differences relative to current-only testing with 95\% intervals (A\_main). Scenario labels: Alig(ned), Part(ial), Shif(ted), Oppo(site), Mixe(d). Only procedures with guaranteed level are shown.}\label{fig:diff}
+\end{figure}
+
+Among level-$\alpha$ procedures, \cref{tab:power,fig:diff} show the following.
+\begin{enumerate}[leftmargin=1.4em,itemsep=1pt]
+\item \emph{Gains with compatible sources.} With three identical sources, WU-R improves on current-only testing by $+0.063\pm0.018$ (Mean$+$), $+0.077\pm0.020$ (Mean$-$) and $+0.110\pm0.024$ (Scale); SW-R gains $+0.053$, $+0.061$ and $+0.037$. ALL gains more ($+0.13$ to $+0.26$) because it uses the full sample-size weights, but ALL has no protection in any other scenario.
+\item \emph{Gains when the source shift opposes the effect.} In the Partial, Shifted and Mixed scenarios with Mean$-$, WU-R gains $+0.097$, $+0.103$ and $+0.073$. Shifted sources move the fused control away from the treatment and enlarge the contrast. This is a genuine but fragile gain, because it depends on the sign of an unknown effect.
+\item \emph{Losses when the source shift mimics the effect.} In Shifted with Mean$+$, WU-R loses $-0.139\pm0.021$, SW-R loses $-0.147\pm0.023$ and ALL collapses to $0.004$. In Shifted and Opposite with Scale, WU-R loses $-0.097$ and $-0.148$. The Opposite case is instructive. The Gram matrix sees that the $\pm0.6$ mean shifts cancel and gives the two sources a combined weight of about $0.74$ (\cref{tab:weights}). Their mixture has the right mean but variance $1.36$, which moves the fused control towards the scale alternative. The risk objective is blind to which features of the distribution matter for the alternative at hand.
+\item \emph{The safeguard trades gains for protection.} G-WU halves both the gains (e.g.\ $+0.031$ instead of $+0.063$) and the losses (e.g.\ $-0.066$ instead of $-0.139$; $-0.047$ instead of $-0.148$). It was never more than $0.07$ below current-only testing in this design.
+\item \emph{Sample splitting is costly.} SW-S and WU-S lose power in almost every cell. Halving the controls used for testing costs more than borrowing gains at $m=40$.
+\item \emph{Shape alternative.} The bimodal alternative with the same mean and variance is barely detectable at this sample size with $\sigma=1$ (rates $0.04$--$0.10$ for procedures with guaranteed level). The frozen procedures appear more powerful, but this reflects their size inflation.
+\end{enumerate}
+
+\paragraph{Why reselection costs power.} Under an alternative, a permuted control sample is a mixture of $Q_c$ and $Q_t$, so the fusion stage behaves differently in permuted rows than in the observed row. In Aligned/Mean$+$, identical sources are accepted in $95\%$ of observed rows but only $71\%$ of permuted rows. In Shifted/Mean$+$, the most shifted sources are accepted in $1\%$ of observed rows but $16\%$ of permuted rows (\cref{tab:accrows} in \cref{app:additional}). Under the null both rates coincide, which is exactly why reselection is exact. Under alternatives the reference distribution is built from rows that borrow differently from the observed row, and this dilutes the borrowed contrast. The frozen tests avoid this dilution and pay for it with size inflation.
+
+\subsection{Weights and selections}\label{sec:weightsres}
+
+\begin{table}[t]
+\centering\scriptsize
+\caption{Mean selected weights (observed row) for the unbiased (WU) and conservative (WC) objectives, and sourcewise acceptance rates (SW, Bonferroni $\alpha_{f,j}=0.05/3$).}\label{tab:weights}
+\input{gen/tab_A_weights.tex}
+\end{table}
+
+\Cref{tab:weights} shows that the unbiased objective borrows about $1.5$ times more than the conservative objective of the earlier draft (total weight $0.83$ versus $0.55$ in Aligned), consistent with the double counting identified in \cref{sec:weights}. The extra borrowing translates into slightly higher power where borrowing helps (Aligned Scale $0.541$ vs.\ $0.524$) and slightly larger losses where it hurts (Opposite Scale $0.257$ vs.\ $0.340$). Weights respond to distances as intended. Sources at distance $0.42$ or more receive little weight ($\le0.07$), and the Partial scenario shifts weight onto the two identical sources. The sourcewise rule accepts each identical source in about $95\%$ of data sets and the $N(0.5,1)$ source in $43\%$. The deterministic bound of \cref{thm:disp} held in all $30{,}000$ data sets and all $200$ rows of each, as the code checks.
+
+\input{sec_results_A_n.tex}
+
+\subsection{Computation}\label{sec:comp}
+
+Per data set at $m=40$ on one worker: shared Gram matrix and allocation statistics $0.016$\,s; CUR and ALL under $1$\,ms; WU-R $0.18$\,s ($1330$ grid points $\times$ $200$ rows); SW-R $0.17$\,s (bootstrap quadratic forms for $200$ rows $\times$ $199$ draws); SW-PB $0.03$\,s; the safeguard adds $3$\,ms. The cost of full reselection is dominated by the per-row fusion bootstrap, which is $O(L B_f m^2)$; at $m=160$ it was $0.89$\,s per data set (\cref{sec:An}). A label-invariant pooled bootstrap, as used in Study~B, removes the factor $L$.
+
+\subsection{Discussion and conclusions}\label{sec:discussion}
+
+\paragraph{What is established.} (i) Selection must be part of the calibration. Freezing an observed selection led to Type-I errors up to $0.14$ in our designs, while re-running the entire selection in every permutation of the current labels gives exact finite-sample level for any symmetric rule (\cref{thm:level}), and this was confirmed empirically in all settings. (ii) The unbiased risk objective, with zero borrowing among the candidates, moves the fused control by at most $O(m^{-1/2})$ in every row, deterministically. This yields uniform $\sqrt n$-rate consistency over all historical distributions (\cref{cor:uniform}) and removes the fixed-radius blind spot. (iii) Sourcewise fusion with a fixed radius keeps a blind spot even with exact calibration (\cref{thm:blind}).
+
+\paragraph{What is not established.} We have no theorem saying that borrowing increases power, and the experiments show it does not always: losses of up to $0.15$ occurred when the historical shift resembled the treatment effect, in location or in scale. Consistency, a property as $n\to\infty$, should not be read as an improvement at the sample size of a trial. Embedding-risk reduction is not power. The risk objective measures closeness to $Q_c$ in the RKHS norm and does not know which direction the alternative takes.
+
+\paragraph{Practical reading.} If borrowing must be justified to a regulator, use full reselection or sample splitting, never a frozen selection. Prefer the risk weights with the minP safeguard when the direction of possible historical drift relative to the treatment effect is unknown. Expect gains of roughly $3$--$8$ percentage points with compatible sources and limited losses otherwise, at the sample sizes we studied. Without the safeguard, gains and losses both roughly double.
+
+\paragraph{Open problems.} Local asymptotic power of reselected tests; borrowing rules whose objective targets the test statistic rather than the embedding risk; increasing $J$; joint calibration of radius and weights; covariate-adjusted versions; and real-data validation. Our novelty assessment is limited to the literature listed in \cref{sec:related}; individual ingredients (random-permutation exactness, minP calibration, Stein-type shrinkage) are established, and our contribution is their combination and analysis for this problem.

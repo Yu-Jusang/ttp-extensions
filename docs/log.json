@@ -1,5 +1,5 @@
 {
- "status": "진행 중 — A 표본크기·B 실험 실행 중, 논문 초안 컴파일 완료 (01:53)",
+ "status": "진행 중 — 연구 A 실험 완료, 연구 B 실험 실행 중 (02:01)",
  "flow": [
   {
    "title": "원 논문 검토",
@@ -113,6 +113,13 @@
    "tag": "로컬 PC",
    "title": "논문 A·B LaTeX 초안 컴파일 성공",
    "body": "<p>A4, 30 mm 여백, 표지·메타데이터·목차·running header·쪽번호, 굵은 번호 제목 + 가는 구분선. 수식·표가 쪽 밖으로 나가는 곳(overfull box)을 모두 수정. 결과 절은 시뮬레이션 완료 후 작성.</p><p>연구 B 핵심 정리 (초안):</p><ul><li>반경 $\\theta_n\\to0$이면 (속도 무관) full reselection 검정은 모든 고정 대립에 일치, finite-sample level 정확.</li><li>동일 source 유지에는 $n\\theta_n^2\\to\\infty$ 충분, $\\sqrt n\\theta_n\\to0$이면 버려짐 → $\\theta_n=Cn^{-a}$에서 $0&lt;a&lt;1/2$.</li><li><b>대가</b>: $D(Q_c,Q_t)=c\\theta_n\\gg n^{-1/2}$인 local 대립에서 검정력 → 0 (current-only는 → 1). 즉 어떤 반경 스케줄도 \"동일 source 유지\"와 \"$\\sqrt n$ 균일 일치성\"을 동시에 가질 수 없음. minP 안전장치나 연구 A의 soft 가중치는 이 trade-off를 피함.</li><li>Vanishing mass $b_n\\to0$: 일치성은 회복하지만 동일 source로부터의 1차 local power 이득은 0.</li><li>원 논문 partial bootstrap은 $Q_h=Q_c$에서 퇴화; 극한 모형 계산상 보수적(0.029–0.039) → conjecture로 제시.</li></ul>"
+  },
+  {
+   "date": "2026. 10. 18 (일)",
+   "time": "02:00",
+   "tag": "로컬 PC (15 workers, 22.8분)",
+   "title": "연구 A 표본 크기 실험 완료: $m=20,40,80,160$ (24,000 데이터셋)",
+   "body": "<table><tr><th>BlindSpot 검정력</th><th>m=20</th><th>40</th><th>80</th><th>160</th></tr><tr><td>current-only</td><td>.361</td><td>.626</td><td>.890</td><td>.994</td></tr><tr><td>모두 합치기 (ALL)</td><td>.060</td><td>.047</td><td>.022</td><td>.007</td></tr><tr><td>source별 fusion, reselection (SW-R)</td><td>.375</td><td>.547</td><td>.189</td><td><b>.009</b></td></tr><tr><td>원 논문식 (SW-PB)</td><td>.371</td><td>.488</td><td>.147</td><td><b>.001</b></td></tr><tr><td>위험 가중치 (WU-R)</td><td>.296</td><td>.526</td><td>.828</td><td>.978</td></tr><tr><td>안전장치 (G-SW)</td><td>.366</td><td>.596</td><td>.860</td><td>.992</td></tr></table><p>→ 고정 반경 사각지대(정리 3.15)가 표본이 커질수록 오히려 심해지는 것을 확인. 가중 방법과 안전장치는 회복.</p><p>선택 고정의 Type-I: source별 선택 고정(SW-F)은 $m$이 커지며 0.079 → 0.057로 줄어듦 (선택이 안정화). 하지만 <b>가중치 고정(WU-F)은 모든 $m$에서 ≈0.11</b> — soft weight는 절대 안정화되지 않기 때문. Current-only의 정확성은 별도 20,000회로 재확인 (0.0506).</p>"
   }
  ]
 }

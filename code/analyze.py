@@ -199,6 +199,61 @@ def table_A_main(suite='A_main', tag=''):
     return out
 
 
+def tables_A_extra(suite='A_main'):
+    d = load(suite)
+    if d is None:
+        return
+    P, T, I = d
+    # Bonferroni vs unadjusted fusion levels, and observed-vs-permuted acceptance
+    s = [r'\begin{tabular}{@{}llrrrr@{}}', r'\toprule',
+         r'Sources & Treatment & SW-R & SWu-R & accept (obs.\ row) $h_1,h_2,h_3$ & accept (perm.\ rows) $h_1,h_2,h_3$\\',
+         r'\midrule']
+    for sc in A_SCEN:
+        for tr in A_TRT:
+            key = (sc, tr, '40')
+            if key not in P:
+                continue
+            a0 = I[key]['SW_acc0'].mean(0)
+            ar = I[key]['SW_accrate_rows'].mean(0)
+            s.append(f'{sc} & {tr} & ' + cell(P[key]['SW-R'], null=tr == 'Null') + ' & ' +
+                     cell(P[key]['SWu-R'], null=tr == 'Null') + ' & ' + ' '.join(fmt(x, 2) for x in a0) +
+                     ' & ' + ' '.join(fmt(x, 2) for x in ar) + r'\\')
+        s.append(r'\addlinespace[2pt]')
+    s[-1] = r'\bottomrule'
+    s.append(r'\end{tabular}')
+    write(os.path.join(GA, 'tab_A_accrows.tex'), '\n'.join(s))
+
+
+def table_repro_bw():
+    d = load('repro_bw')
+    if d is None:
+        return
+    P, T, I = d
+    orig = {'0.5': ('0.34', '0.528 (0.511)', '0.070 (0.063)', '0.536 (0.566)'),
+            '1.0': ('0.67', '0.572 (0.559)', '0.074 (0.053)', '0.711 (0.629)'),
+            '1.5': ('0.82', '0.581 (0.566)', '0.074 (0.065)', '0.739 (0.677)')}
+    s = [r'\begin{tabular}{@{}lrrrrrrr@{}}', r'\toprule',
+         r'$s$ & merge & \multicolumn{2}{c}{$\mu_c-\mu_t=-0.4$} & \multicolumn{2}{c}{$\mu_c=\mu_t$} & \multicolumn{2}{c}{$\mu_c-\mu_t=+0.4$}\\',
+         r'\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(l){7-8}',
+         r' & & PB & PP & PB & PP & PB & PP\\', r'\midrule']
+    for bw in ['0.5', '1.0', '1.5']:
+        cells, merges = [], []
+        for dm in ['-0.4', '+0.0', '+0.4']:
+            key = (dm, f'bw{bw}', '0')
+            if key not in P:
+                cells += ['--', '--']
+                continue
+            merges.append(I[key]['accF-fix'].mean())
+            cells += [cell(P[key]['PB-fix'], null=dm == '+0.0'), cell(P[key]['F-fix'], null=dm == '+0.0')]
+        mg = fmt(np.mean(merges)) if merges else '--'
+        s.append(f'{bw} & {mg} & ' + ' & '.join(cells) + r'\\')
+        o = orig[bw]
+        s.append(r'\quad original & ' + o[0] + ' & ' + ' & '.join(x.replace(' (', ' & ').replace(')', '') for x in o[1:]) + r'\\')
+    s += [r'\bottomrule', r'\end{tabular}']
+    write(os.path.join(GA, 'tab_repro_bw.tex'), '\n'.join(s))
+    write(os.path.join(GB, 'tab_repro_bw.tex'), '\n'.join(s))
+
+
 A_N_SETTINGS = ['AlignedNull', 'ShiftedNull', 'AlignedMean', 'BlindSpot']
 
 
@@ -381,6 +436,8 @@ def study_B(suite='B_n', local='B_local', tag=''):
 def main():
     summary = {}
     repro_table()
+    table_repro_bw()
+    tables_A_extra()
     summary['A_main'] = table_A_main()
     summary['A_n_timing'] = fig_A_n()
     summary['B'] = study_B()

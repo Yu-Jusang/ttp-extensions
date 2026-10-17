@@ -1,0 +1,20 @@
+\subsection{Growing samples and the blind spot}\label{sec:An}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{gen/fig_A_n.pdf}
+\caption{A\_n: rejection rates against $m$ ($n=\ell_j=2m$, three sources, $\theta=0.5$) with Wilson 95\% intervals; dotted line at $0.05$ in null panels. BlindSpot: all sources $N(0.6,1)$ and $Q_t=\frac17N(0,1)+\frac67N(0.6,1)$, so pooling all sources reproduces $Q_t$. Full table in \cref{tab:An}.}\label{fig:An}
+\end{figure}
+
+\Cref{fig:An} and \cref{tab:An} show three patterns.
+
+\paragraph{Frozen selection: which inflation vanishes.} SW-F rejected at $0.079$ at $m=20$ and $0.057$ at $m=160$ under AlignedNull, and at $0.082$ ($m=40$) and $0.041$ ($m=160$) under ShiftedNull. This matches the oracle-coupling mechanism: with a fixed radius and fixed distributions, the sourcewise selection stabilises (identical and $N(0.6,1)$ sources are eventually always accepted), and the conditioning effect fades. Frozen \emph{risk weights} (WU-F) stayed at $0.10$--$0.11$ under AlignedNull for every $m$. Soft weights never stabilise: $m\hat D^2/\hat v_c$ has a nondegenerate limit, so the selected weights remain random at every sample size. The original partial bootstrap (SW-PB) was anti-conservative at small $m$ ($0.093$, $0.132$) and, when merged sources are identical, conservative at larger $m$ ($0.025$--$0.029$). With shifted merged sources it stayed above $0.05$ up to $m=160$ ($0.070$).
+
+\paragraph{Reselected and fixed-rule procedures stay calibrated.} Across the $8$ null cells, CUR, ALL, WU-R and SW-R stayed between $0.040$ and $0.062$. Two cells marked $\uparrow$ for CUR (an exact test) and one for G-SW are within the range expected from about $40$ marginal intervals. As a separate check, $20{,}000$ additional current-only tests with $m=20$ gave $0.0506$ (s.e.\ $0.0015$).
+
+\paragraph{The blind spot is real and is removed by risk weighting.} In BlindSpot, ALL has power $0.060,0.047,0.022,0.007$ as $m$ grows, and SW-R, SW-F and SW-PB fall to $0.009$, $0.009$ and $0.001$ at $m=160$, while current-only testing reaches $0.994$. This is \cref{thm:blind} in action: for $m\ge80$ every source passes the fixed-radius fusion test, and the pooled control equals $Q_t$. WU-R follows the current-only curve from slightly below ($0.296$ vs.\ $0.361$ at $m=20$; $0.978$ vs.\ $0.994$ at $m=160$), as \cref{cor:uniform} predicts, and G-SW repairs SW-R ($0.992$). With aligned sources, SW-R gains up to $0.12$ ($m=80$: $0.820$ vs.\ $0.702$) and WU-R up to $0.07$.
+
+\paragraph{Cost.} Per data set, SW-R took $0.10$, $0.16$, $0.20$ and $0.89$\,s at $m=20,40,80,160$ (row-wise fusion bootstrap), and WU-R took $0.09$--$0.17$\,s.
+
+\subsection{Independent-seed confirmation}\label{sec:confirm}
+\IfFileExists{sec_confirm_A.tex}{\input{sec_confirm_A.tex}}{Confirmation runs pending.}
